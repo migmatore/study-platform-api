@@ -13,9 +13,12 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port         string `mapstructure:"port"`
-	JwtSecretKey string `mapstructure:"jwt_secret_key"`
-	Mode         string `mapstructure:"mode"`
+	Port                  string `mapstructure:"port"`
+	JwtSecretKey          string `mapstructure:"jwt_secret_key"`
+	JwtExpTimeMin         int    `mapstructure:"jwt_exp_time_min"`
+	JwtRefreshSecretKey   string `mapstructure:"jwt_refresh_secret_key"`
+	JwtRefreshExpTimeHour int    `mapstructure:"jwt_refresh_exp_time_Hour"`
+	Mode                  string `mapstructure:"mode"`
 }
 
 type LoggerConfig struct {

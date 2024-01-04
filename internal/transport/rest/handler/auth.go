@@ -9,8 +9,8 @@ import (
 )
 
 type AuthUseCase interface {
-	Signin(ctx context.Context, req core.UserSigninRequest) (string, error)
-	Signup(ctx context.Context, req core.UserSignupRequest) (string, error)
+	Signin(ctx context.Context, req core.UserSigninRequest) (core.UserAuthResponse, error)
+	Signup(ctx context.Context, req core.UserSignupRequest) (core.UserAuthResponse, error)
 }
 
 type AuthHandler struct {
@@ -33,12 +33,12 @@ func (h AuthHandler) Signin(c *fiber.Ctx) error {
 		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the required parameters cannot be empty"))
 	}
 
-	token, err := h.authUseCase.Signin(ctx, user)
+	resp, err := h.authUseCase.Signin(ctx, user)
 	if err != nil {
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(token)
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
 
 func (h AuthHandler) Signup(c *fiber.Ctx) error {
@@ -54,10 +54,10 @@ func (h AuthHandler) Signup(c *fiber.Ctx) error {
 		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the required parameters cannot be empty"))
 	}
 
-	token, err := h.authUseCase.Signup(ctx, user)
+	resp, err := h.authUseCase.Signup(ctx, user)
 	if err != nil {
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(token)
+	return c.Status(fiber.StatusOK).JSON(resp)
 }

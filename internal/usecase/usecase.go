@@ -1,7 +1,9 @@
 package usecase
 
 type Deps struct {
-	UserService UserService
+	TransactionService TransactionService
+	UserService        UserService
+	InstitutionService InstitutionService
 }
 
 type UseCase struct {
@@ -9,5 +11,9 @@ type UseCase struct {
 }
 
 func New(deps Deps) *UseCase {
-	return &UseCase{Auth: NewAuthUseCase(deps.UserService)}
+	return &UseCase{Auth: NewAuthUseCase(
+		deps.TransactionService,
+		deps.UserService,
+		deps.InstitutionService,
+	)}
 }

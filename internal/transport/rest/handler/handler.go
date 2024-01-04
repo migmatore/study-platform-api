@@ -5,7 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	httpLog "github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/migmatore/study-platform-api/pkg/logger"
 )
 
 type Deps struct {
@@ -13,8 +12,7 @@ type Deps struct {
 }
 
 type Handler struct {
-	app    *fiber.App
-	logger logger.Logger
+	app *fiber.App
 
 	auth *AuthHandler
 }
