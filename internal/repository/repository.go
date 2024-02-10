@@ -11,6 +11,8 @@ type Repository struct {
 	User        *UserRepo
 	Role        *RoleRepo
 	Institution *InstitutionRepo
+	Classroom   *ClassroomRepo
+	Lesson      *LessonRepo
 }
 
 func New(logger logger.Logger, pool psql.AtomicPoolClient) *Repository {
@@ -19,5 +21,7 @@ func New(logger logger.Logger, pool psql.AtomicPoolClient) *Repository {
 		User:        NewUserRepo(logger, pool),
 		Role:        NewRoleRepo(logger, pool),
 		Institution: NewInstitutionRepo(logger, pool),
+		Classroom:   NewClassroomRepo(logger, pool),
+		Lesson:      NewLessonRepo(logger, pool),
 	}
 }

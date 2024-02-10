@@ -7,6 +7,7 @@ type InstitutionModel struct {
 }
 
 type Institution struct {
+	Id          int
 	Name        string
 	Description *string
 }

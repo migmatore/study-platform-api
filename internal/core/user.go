@@ -11,12 +11,13 @@ type UserModel struct {
 }
 
 type User struct {
+	Id           int
 	FullName     string
 	Phone        *string
 	Email        string
 	PasswordHash string
 	Role         RoleType
-	Institution  *InstitutionModel
+	Institution  *Institution
 }
 
 type UserSigninRequest struct {
@@ -33,6 +34,11 @@ type UserSignupRequest struct {
 }
 
 type UserAuthResponse struct {
-	Token string `json:"token"`
-	Role  string `json:"role"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
+	Role         string `json:"role"`
+}
+
+type UserTokenRefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
 }

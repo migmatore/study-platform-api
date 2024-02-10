@@ -6,5 +6,6 @@ import (
 )
 
 type RoleRepo interface {
-	GetByName(ctx context.Context, name string) (core.RoleModel, error)
+	ByName(ctx context.Context, name string) (core.RoleModel, error)
+	ById(ctx context.Context, id int) (core.RoleModel, error)
 }

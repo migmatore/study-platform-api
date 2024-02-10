@@ -3,63 +3,31 @@ package jwt
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"strings"
+	"github.com/migmatore/study-platform-api/internal/core"
 )
 
-type TokenMetadata struct {
-	Expires int64
-	UserId  int
-	Role    string
-}
-
 // ExtractTokenMetadata func to extract metadata from JWT.
-func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
-	token, err := verifyToken(c)
-	if err != nil {
-		return nil, err
+func ExtractTokenMetadata(c *fiber.Ctx) core.TokenMetadata {
+	jwtCtx := c.Locals("jwt").(*jwt.Token)
+	claims := jwtCtx.Claims.(jwt.MapClaims)
+
+	return core.TokenMetadata{
+		UserId:  int(claims["user_id"].(float64)),
+		Role:    claims["role"].(string),
+		Expires: int64(claims["exp"].(float64)),
 	}
-
-	// Setting and checking token and credentials.
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		// Expires time.
-		expires := int64(claims["exp"].(float64))
-		userId := int(claims["user_id"].(float64))
-		role := claims["role"].(string)
-
-		return &TokenMetadata{
-			Expires: expires,
-			UserId:  userId,
-			Role:    role,
-		}, nil
-	}
-
-	return nil, err
 }
 
-func extractToken(c *fiber.Ctx) string {
-	bearToken := c.Get("Authorization")
-
-	// Normally Authorization HTTP header.
-	onlyToken := strings.Split(bearToken, " ")
-	if len(onlyToken) == 2 {
-		return onlyToken[1]
+func JwtError(c *fiber.Ctx, err error) error {
+	// Return status 401 and failed authentication error.
+	if err.Error() == "Missing or malformed JWT" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
-	return ""
-}
-
-func verifyToken(c *fiber.Ctx) (*jwt.Token, error) {
-	tokenString := extractToken(c)
-
-	token, err := jwt.Parse(tokenString, jwtKeyFunc)
-	if err != nil {
-		return nil, err
-	}
-
-	return token, nil
-}
-
-func jwtKeyFunc(token *jwt.Token) (interface{}, error) {
-	return []byte("secret"), nil
+	// Return status 401 and failed authentication error.
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		"message": err.Error(),
+	})
 }

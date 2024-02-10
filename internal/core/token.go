@@ -20,5 +20,4 @@ type RefreshTokenMetadata struct {
 type RefreshTokenWithClaims struct {
 	Token  string
 	UserId int
-	Role   string
 }

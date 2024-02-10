@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/migmatore/study-platform-api/config"
+	"github.com/migmatore/study-platform-api/internal/apperrors"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"time"
 )
@@ -15,7 +17,7 @@ func NewTokenService(config *config.Config) *TokenService {
 	return &TokenService{config: config}
 }
 
-func (s TokenService) GetToken(userId int, role string) (core.TokenWithClaims, error) {
+func (s TokenService) Token(userId int, role string) (core.TokenWithClaims, error) {
 	expires := time.Now().Add(time.Minute * time.Duration(s.config.Server.JwtExpTimeMin)).Unix()
 
 	claims := jwt.MapClaims{
@@ -38,8 +40,8 @@ func (s TokenService) GetToken(userId int, role string) (core.TokenWithClaims, e
 	}, nil
 }
 
-func (s TokenService) GetRefreshToken(userId int) (core.RefreshTokenWithClaims, error) {
-	expires := time.Now().Add(time.Minute * time.Duration(s.config.Server.JwtExpTimeMin)).Unix()
+func (s TokenService) RefreshToken(userId int) (core.RefreshTokenWithClaims, error) {
+	expires := time.Now().Add(time.Hour * time.Duration(s.config.Server.JwtRefreshExpTimeHour)).Unix()
 
 	claims := jwt.MapClaims{
 		"user_id": userId,
@@ -48,7 +50,7 @@ func (s TokenService) GetRefreshToken(userId int) (core.RefreshTokenWithClaims, 
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte(s.config.Server.JwtSecretKey))
+	t, err := token.SignedString([]byte(s.config.Server.JwtRefreshSecretKey))
 	if err != nil {
 		return core.RefreshTokenWithClaims{}, err
 	}
@@ -57,4 +59,68 @@ func (s TokenService) GetRefreshToken(userId int) (core.RefreshTokenWithClaims, 
 		Token:  t,
 		UserId: userId,
 	}, nil
+}
+
+func (s TokenService) ExtractTokenMetadata(tokenString string) (core.TokenMetadata, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.config.Server.JwtSecretKey), nil
+	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrSignatureInvalid) || errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+			return core.TokenMetadata{}, apperrors.InvalidToken
+		}
+
+		return core.TokenMetadata{}, err
+	}
+
+	if !token.Valid {
+		return core.TokenMetadata{}, apperrors.InvalidToken
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		// Expires time.
+		expires := int64(claims["exp"].(float64))
+		userId := int(claims["user_id"].(float64))
+		role := claims["role"].(string)
+
+		return core.TokenMetadata{
+			Expires: expires,
+			UserId:  userId,
+			Role:    role,
+		}, nil
+	}
+
+	return core.TokenMetadata{}, err
+}
+
+func (s TokenService) ExtractRefreshTokenMetadata(tokenString string) (core.RefreshTokenMetadata, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.config.Server.JwtRefreshSecretKey), nil
+	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrSignatureInvalid) || errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+			return core.RefreshTokenMetadata{}, apperrors.InvalidToken
+		}
+
+		return core.RefreshTokenMetadata{}, err
+	}
+
+	if !token.Valid {
+		return core.RefreshTokenMetadata{}, apperrors.InvalidToken
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		// Expires time.
+		expires := int64(claims["exp"].(float64))
+		userId := int(claims["user_id"].(float64))
+
+		return core.RefreshTokenMetadata{
+			Expires: expires,
+			UserId:  userId,
+		}, nil
+	}
+
+	return core.RefreshTokenMetadata{}, err
 }

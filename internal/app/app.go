@@ -46,6 +46,8 @@ func (a *App) Run(ctx context.Context) {
 		UserRepo:        repos.User,
 		RoleRepo:        repos.Role,
 		InstitutionRepo: repos.Institution,
+		ClassroomRepo:   repos.Classroom,
+		LessonRepo:      repos.Lesson,
 	})
 
 	a.logger.Info("Use cases initializing...")
@@ -53,10 +55,18 @@ func (a *App) Run(ctx context.Context) {
 		TransactionService: services.Transaction,
 		UserService:        services.User,
 		InstitutionService: services.Institution,
+		TokenService:       services.Token,
+		TeacherService:     services.Teacher,
+		ClassroomService:   services.Classroom,
+		LessonService:      services.Lesson,
 	})
 
 	a.logger.Info("Handlers initializing...")
-	restHandlers := handler.New(handler.Deps{AuthUseCase: useCases.Auth})
+	restHandlers := handler.New(a.cfg, handler.Deps{
+		AuthUseCase:      useCases.Auth,
+		ClassroomUseCase: useCases.Classroom,
+		LessonUseCase:    useCases.Lesson,
+	})
 
 	app := restHandlers.Init(ctx)
 
