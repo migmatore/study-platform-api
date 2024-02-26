@@ -31,7 +31,7 @@ func New(config *config.Config, deps Deps) *Service {
 		Institution: NewInstitutionService(deps.InstitutionRepo),
 		Token:       NewTokenService(config),
 		Teacher:     NewTeacherService(deps.ClassroomRepo, deps.UserRepo, deps.RoleRepo),
-		Classroom:   NewClassroomService(deps.ClassroomRepo),
+		Classroom:   NewClassroomService(deps.ClassroomRepo, deps.UserRepo),
 		Lesson:      NewLessonService(deps.LessonRepo),
 	}
 }

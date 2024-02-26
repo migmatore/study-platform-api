@@ -59,6 +59,8 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	classrooms := v1.Group("/classrooms")
 	classrooms.Get("/", h.classroom.All)
 	classrooms.Get("/:id/lessons", h.classroom.Lessons)
+	classrooms.Post("/:id/lessons", h.classroom.CreateLesson)
+	classrooms.Put("/:classroomId/lessons", h.classroom.UpdateLesson)
 
 	//classroms/1/lessons/2
 

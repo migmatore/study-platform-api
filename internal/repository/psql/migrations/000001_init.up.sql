@@ -36,6 +36,7 @@ CREATE TABLE lessons
     id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     title        VARCHAR(100) NOT NULL,
     classroom_id INT          NOT NULL REFERENCES classrooms (id),
+    content      JSONB,
     active       BOOLEAN DEFAULT FALSE
 );
 
