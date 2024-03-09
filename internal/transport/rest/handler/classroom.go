@@ -16,6 +16,7 @@ type ClassroomUseCase interface {
 
 type LessonUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata, classroomId int) ([]core.LessonResponse, error)
+	Current(ctx context.Context, metadata core.TokenMetadata, classroomId int) (core.LessonResponse, error)
 	Create(ctx context.Context, metadata core.TokenMetadata, classroomId int, req core.CreateLessonRequest) (core.LessonResponse, error)
 	Update(ctx context.Context, metadata core.TokenMetadata, req core.UpdateLessonRequest) error
 }
@@ -58,6 +59,31 @@ func (h ClassroomHandler) Lessons(c *fiber.Ctx) error {
 	return c.JSON(lessons)
 }
 
+func (h ClassroomHandler) CurrentLesson(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	classroomId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be number"))
+	}
+
+	lesson, err := h.lessonUseCase.Current(ctx, claims, classroomId)
+	if err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		if errors.Is(err, apperrors.EntityNotFound) {
+			return utils.FiberError(c, fiber.StatusNoContent, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.JSON(lesson)
+}
+
 func (h ClassroomHandler) CreateLesson(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	claims := jwt.ExtractTokenMetadata(c)
@@ -89,7 +115,7 @@ func (h ClassroomHandler) UpdateLesson(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	claims := jwt.ExtractTokenMetadata(c)
 
-	classroomId, err := c.ParamsInt("classroomId")
+	classroomId, err := c.ParamsInt("id")
 	if err != nil {
 		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be number"))
 	}

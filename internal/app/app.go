@@ -7,7 +7,8 @@ import (
 	"github.com/migmatore/study-platform-api/internal/repository/psql"
 	"github.com/migmatore/study-platform-api/internal/service"
 	"github.com/migmatore/study-platform-api/internal/transport/rest"
-	"github.com/migmatore/study-platform-api/internal/transport/rest/handler"
+	restHandler "github.com/migmatore/study-platform-api/internal/transport/rest/handler"
+	"github.com/migmatore/study-platform-api/internal/transport/websocket"
 	"github.com/migmatore/study-platform-api/internal/usecase"
 	"github.com/migmatore/study-platform-api/pkg/logger"
 )
@@ -57,20 +58,31 @@ func (a *App) Run(ctx context.Context) {
 		InstitutionService: services.Institution,
 		TokenService:       services.Token,
 		TeacherService:     services.Teacher,
+		StudentService:     services.Student,
 		ClassroomService:   services.Classroom,
 		LessonService:      services.Lesson,
 	})
 
 	a.logger.Info("Handlers initializing...")
-	restHandlers := handler.New(a.cfg, handler.Deps{
+	restHandlers := restHandler.New(a.cfg, restHandler.Deps{
 		AuthUseCase:      useCases.Auth,
 		ClassroomUseCase: useCases.Classroom,
 		LessonUseCase:    useCases.Lesson,
 	})
 
-	app := restHandlers.Init(ctx)
+	restApp := restHandlers.Init(ctx)
 
 	a.logger.Info("Server starting...")
-	srv := rest.NewServer(":"+a.cfg.Server.Port, app, a.logger)
-	srv.StartWithGracefulShutdown()
+	restSrv := rest.NewRESTServer(":"+a.cfg.Server.RESTPort, restApp, a.logger)
+	go restSrv.StartWithGracefulShutdown()
+
+	wsHandlers := websocket.NewHandler(a.cfg, websocket.HandlerDeps{
+		AuthUseCase:      useCases.Auth,
+		ClassroomUseCase: useCases.Classroom,
+	})
+
+	wsApp := wsHandlers.Init(ctx)
+
+	wsSrv := websocket.NewWebsocketServer(":"+a.cfg.Server.WSPort, wsApp, a.logger)
+	wsSrv.StartWithGracefulShutdown()
 }

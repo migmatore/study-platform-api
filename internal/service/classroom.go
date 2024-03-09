@@ -7,7 +7,10 @@ import (
 
 type ClassroomRepo interface {
 	TeacherClassrooms(ctx context.Context, teacherId int) ([]core.ClassroomModel, error)
+	StudentClassrooms(ctx context.Context, studentId int) ([]core.ClassroomModel, error)
 	ById(ctx context.Context, id int) (core.ClassroomModel, error)
+	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
+	Students(ctx context.Context, classroomId int) ([]core.UserModel, error)
 }
 
 type ClassroomTeacherUserRepo interface {
@@ -38,7 +41,7 @@ func (s ClassroomService) ById(ctx context.Context, id int) (core.Classroom, err
 	}, nil
 }
 
-func (s ClassroomService) IsBelongs(ctx context.Context, classroomId int, teacherId int) (bool, error) {
+func (s ClassroomService) IsBelongs(ctx context.Context, classroomId, teacherId int) (bool, error) {
 	teacher, err := s.teacherRepo.ById(ctx, teacherId)
 	if err != nil {
 		return false, err
@@ -50,4 +53,28 @@ func (s ClassroomService) IsBelongs(ctx context.Context, classroomId int, teache
 	}
 
 	return classroom.TeacherId == teacher.Id, nil
+}
+
+func (s ClassroomService) IsIn(ctx context.Context, classroomId, studentId int) (bool, error) {
+	return s.classroomRepo.IsIn(ctx, classroomId, studentId)
+}
+
+func (s ClassroomService) Students(ctx context.Context, classroomId int) ([]core.Student, error) {
+	usersModel, err := s.classroomRepo.Students(ctx, classroomId)
+	if err != nil {
+		return nil, err
+	}
+
+	students := make([]core.Student, 0, len(usersModel))
+
+	for _, user := range usersModel {
+		students = append(students, core.Student{
+			Id:       user.Id,
+			FullName: user.FullName,
+			Phone:    user.Phone,
+			Email:    user.Email,
+		})
+	}
+
+	return students, nil
 }

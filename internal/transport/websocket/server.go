@@ -1,4 +1,4 @@
-package rest
+package websocket
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +13,7 @@ type Server struct {
 	logger logger.Logger
 }
 
-func NewRESTServer(addr string, app *fiber.App, logger logger.Logger) *Server {
+func NewWebsocketServer(addr string, app *fiber.App, logger logger.Logger) *Server {
 	return &Server{
 		app:    app,
 		addr:   addr,
@@ -23,7 +23,7 @@ func NewRESTServer(addr string, app *fiber.App, logger logger.Logger) *Server {
 
 func (s *Server) Start() {
 	if err := s.app.Listen(s.addr); err != nil {
-		s.logger.Fatalf("Server is not running! Reason: %v", err)
+		s.logger.Fatalf("Websocket server is not running! Reason: %v", err)
 	}
 }
 
@@ -36,16 +36,16 @@ func (s *Server) StartWithGracefulShutdown() {
 		<-sigint
 
 		if err := s.app.Shutdown(); err != nil {
-			s.logger.Errorf("Server is not shutting down! Reason: %v", err)
+			s.logger.Errorf("Websocket server is not shutting down! Reason: %v", err)
 		}
 
-		s.logger.Info("Server has successfully shut down!")
+		s.logger.Info("Websocket server has successfully shut down!")
 
 		close(idleConnsClosed)
 	}()
 
 	if err := s.app.Listen(s.addr); err != nil {
-		s.logger.Fatalf("Server is not running! Reason: %v", err)
+		s.logger.Fatalf("Websocket server is not running! Reason: %v", err)
 	}
 
 	<-idleConnsClosed

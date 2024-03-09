@@ -40,6 +40,29 @@ func (s TokenService) Token(userId int, role string) (core.TokenWithClaims, erro
 	}, nil
 }
 
+func (s TokenService) WSToken(userId int, role string) (core.TokenWithClaims, error) {
+	expires := time.Now().Add(time.Hour * time.Duration(s.config.Server.WSJwtExpTimeHour)).Unix()
+
+	claims := jwt.MapClaims{
+		"user_id": userId,
+		"role":    role,
+		"exp":     expires,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	t, err := token.SignedString([]byte(s.config.Server.WSJwtSecretKey))
+	if err != nil {
+		return core.TokenWithClaims{}, err
+	}
+
+	return core.TokenWithClaims{
+		Token:  t,
+		UserId: userId,
+		Role:   role,
+	}, nil
+}
+
 func (s TokenService) RefreshToken(userId int) (core.RefreshTokenWithClaims, error) {
 	expires := time.Now().Add(time.Hour * time.Duration(s.config.Server.JwtRefreshExpTimeHour)).Unix()
 
@@ -70,6 +93,10 @@ func (s TokenService) ExtractTokenMetadata(tokenString string) (core.TokenMetada
 			return core.TokenMetadata{}, apperrors.InvalidToken
 		}
 
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return core.TokenMetadata{}, apperrors.ExpiredToken
+		}
+
 		return core.TokenMetadata{}, err
 	}
 
@@ -80,6 +107,42 @@ func (s TokenService) ExtractTokenMetadata(tokenString string) (core.TokenMetada
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		// Expires time.
+		expires := int64(claims["exp"].(float64))
+		userId := int(claims["user_id"].(float64))
+		role := claims["role"].(string)
+
+		return core.TokenMetadata{
+			Expires: expires,
+			UserId:  userId,
+			Role:    role,
+		}, nil
+	}
+
+	return core.TokenMetadata{}, err
+}
+
+func (s TokenService) ExtractWSTokenMetadata(tokenString string) (core.TokenMetadata, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.config.Server.WSJwtSecretKey), nil
+	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrSignatureInvalid) || errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+			return core.TokenMetadata{}, apperrors.InvalidToken
+		}
+
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return core.TokenMetadata{}, apperrors.ExpiredToken
+		}
+
+		return core.TokenMetadata{}, err
+	}
+
+	if !token.Valid {
+		return core.TokenMetadata{}, apperrors.InvalidToken
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
 		expires := int64(claims["exp"].(float64))
 		userId := int(claims["user_id"].(float64))
 		role := claims["role"].(string)

@@ -6,6 +6,7 @@ type Deps struct {
 	InstitutionService InstitutionService
 	TokenService       TokenService
 	TeacherService     TeacherService
+	StudentService     StudentService
 	LessonService      LessonService
 	ClassroomService   ClassroomService
 }
@@ -24,7 +25,7 @@ func New(deps Deps) *UseCase {
 			deps.InstitutionService,
 			deps.TokenService,
 		),
-		Classroom: NewClassroomUseCase(deps.TeacherService),
+		Classroom: NewClassroomUseCase(deps.ClassroomService, deps.TeacherService, deps.StudentService),
 		Lesson:    NewLessonUseCase(deps.LessonService, deps.ClassroomService, deps.TeacherService),
 	}
 }

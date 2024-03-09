@@ -35,10 +35,29 @@ type UserSignupRequest struct {
 
 type UserAuthResponse struct {
 	Token        string `json:"token"`
+	WSToken      string `json:"ws_token"`
 	RefreshToken string `json:"refresh_token"`
 	Role         string `json:"role"`
 }
 
 type UserTokenRefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
+}
+
+type UserAuthRequest struct {
+	Token string `json:"token"`
+}
+
+type Student struct {
+	Id       int     `json:"id"`
+	FullName string  `json:"full_name"`
+	Phone    *string `json:"phone"`
+	Email    string  `json:"email"`
+}
+
+type StudentResponse struct {
+	Id       int     `json:"id"`
+	FullName string  `json:"full_name"`
+	Phone    *string `json:"phone"`
+	Email    string  `json:"email"`
 }

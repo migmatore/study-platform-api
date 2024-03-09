@@ -22,8 +22,10 @@ type InstitutionService interface {
 
 type TokenService interface {
 	Token(userId int, role string) (core.TokenWithClaims, error)
+	WSToken(userId int, role string) (core.TokenWithClaims, error)
 	RefreshToken(userId int) (core.RefreshTokenWithClaims, error)
 	ExtractTokenMetadata(tokenString string) (core.TokenMetadata, error)
+	ExtractWSTokenMetadata(tokenString string) (core.TokenMetadata, error)
 	ExtractRefreshTokenMetadata(tokenString string) (core.RefreshTokenMetadata, error)
 }
 
@@ -72,6 +74,11 @@ func (uc AuthUseCase) Signin(ctx context.Context, req core.UserSigninRequest) (c
 		return core.UserAuthResponse{}, err
 	}
 
+	wsTokenClaims, err := uc.tokenService.WSToken(user.Id, string(user.Role))
+	if err != nil {
+		return core.UserAuthResponse{}, err
+	}
+
 	refreshTokenClaims, err := uc.tokenService.RefreshToken(user.Id)
 	if err != nil {
 		if err != nil {
@@ -81,6 +88,7 @@ func (uc AuthUseCase) Signin(ctx context.Context, req core.UserSigninRequest) (c
 
 	return core.UserAuthResponse{
 		Token:        tokenClaims.Token,
+		WSToken:      wsTokenClaims.Token,
 		RefreshToken: refreshTokenClaims.Token,
 		Role:         tokenClaims.Role,
 	}, nil
@@ -159,6 +167,11 @@ func (uc AuthUseCase) Signup(ctx context.Context, req core.UserSignupRequest) (c
 		return core.UserAuthResponse{}, err
 	}
 
+	wsTokenClaims, err := uc.tokenService.WSToken(user.Id, string(user.Role))
+	if err != nil {
+		return core.UserAuthResponse{}, err
+	}
+
 	refreshTokenClaims, err := uc.tokenService.RefreshToken(user.Id)
 	if err != nil {
 		if err != nil {
@@ -168,6 +181,7 @@ func (uc AuthUseCase) Signup(ctx context.Context, req core.UserSignupRequest) (c
 
 	return core.UserAuthResponse{
 		Token:        tokenClaims.Token,
+		WSToken:      wsTokenClaims.Token,
 		RefreshToken: refreshTokenClaims.Token,
 		Role:         tokenClaims.Role,
 	}, nil
@@ -198,6 +212,11 @@ func (uc AuthUseCase) Refresh(ctx context.Context, req core.UserTokenRefreshRequ
 		return core.UserAuthResponse{}, err
 	}
 
+	wsTokenClaims, err := uc.tokenService.WSToken(user.Id, string(user.Role))
+	if err != nil {
+		return core.UserAuthResponse{}, err
+	}
+
 	refreshTokenClaims, err := uc.tokenService.RefreshToken(user.Id)
 	if err != nil {
 		if err != nil {
@@ -207,7 +226,26 @@ func (uc AuthUseCase) Refresh(ctx context.Context, req core.UserTokenRefreshRequ
 
 	return core.UserAuthResponse{
 		Token:        tokenClaims.Token,
+		WSToken:      wsTokenClaims.Token,
 		RefreshToken: refreshTokenClaims.Token,
 		Role:         tokenClaims.Role,
 	}, nil
+}
+
+func (uc AuthUseCase) Auth(ctx context.Context, req core.UserAuthRequest) (core.TokenMetadata, error) {
+	metadata, err := uc.tokenService.ExtractWSTokenMetadata(req.Token)
+	if err != nil {
+		return core.TokenMetadata{}, err
+	}
+
+	exist, err := uc.userService.IsExistById(ctx, metadata.UserId)
+	if err != nil {
+		return core.TokenMetadata{}, err
+	}
+
+	if !exist {
+		return core.TokenMetadata{}, apperrors.EntityNotFound
+	}
+
+	return metadata, nil
 }

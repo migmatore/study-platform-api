@@ -6,6 +6,10 @@ import (
 	"github.com/migmatore/study-platform-api/internal/core"
 )
 
+//func ParseToken(token string) core.TokenMetadata {
+//	jwt.Parse(token)
+//}
+
 // ExtractTokenMetadata func to extract metadata from JWT.
 func ExtractTokenMetadata(c *fiber.Ctx) core.TokenMetadata {
 	jwtCtx := c.Locals("jwt").(*jwt.Token)

@@ -31,6 +31,13 @@ CREATE TABLE classrooms
     max_students INT          NOT NULL DEFAULT 1
 );
 
+CREATE TABLE classroom_students
+(
+    id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    classroom_id INT NOT NULL REFERENCES classrooms(id),
+    student_id INT NOT NULL REFERENCES users(id)
+);
+
 CREATE TABLE lessons
 (
     id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
