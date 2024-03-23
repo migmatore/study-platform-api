@@ -62,6 +62,7 @@ type CreateLessonRequest struct {
 }
 
 type UpdateLessonRequest struct {
+	// TODO: change current classroom id
 	CurrentClassroomId *int             `json:"classroom_id,omitempty"`
 	LessonId           *int             `json:"lesson_id,omitempty"`
 	Title              *string          `json:"title,omitempty"`

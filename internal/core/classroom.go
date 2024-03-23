@@ -23,3 +23,9 @@ type ClassroomResponse struct {
 	TeacherId   int     `json:"teacher_id"`
 	MaxStudents int     `json:"max_students"`
 }
+
+type CreateClassroomRequest struct {
+	Title       string  `json:"title"`
+	Description *string `json:"description,omitempty"`
+	MaxStudents int     `json:"max_students"`
+}

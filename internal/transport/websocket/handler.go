@@ -43,7 +43,7 @@ func NewHandler(config *config.Config, deps HandlerDeps) *Handler {
 	}
 }
 
-func (h *Handler) Init(ctx context.Context) *fiber.App {
+func (h *Handler) Init() *fiber.App {
 	h.app = fiber.New()
 
 	h.app.Use(cors.New())

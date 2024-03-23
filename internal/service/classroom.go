@@ -6,11 +6,13 @@ import (
 )
 
 type ClassroomRepo interface {
+	Create(ctx context.Context, classroom core.ClassroomModel) (core.ClassroomModel, error)
 	TeacherClassrooms(ctx context.Context, teacherId int) ([]core.ClassroomModel, error)
 	StudentClassrooms(ctx context.Context, studentId int) ([]core.ClassroomModel, error)
 	ById(ctx context.Context, id int) (core.ClassroomModel, error)
 	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
 	Students(ctx context.Context, classroomId int) ([]core.UserModel, error)
+	StudentsByClassroomsId(ctx context.Context, ids []int) ([]core.StudentModel, error)
 }
 
 type ClassroomTeacherUserRepo interface {
@@ -24,6 +26,27 @@ type ClassroomService struct {
 
 func NewClassroomService(classroomRepo ClassroomRepo, teacherRepo ClassroomTeacherUserRepo) *ClassroomService {
 	return &ClassroomService{classroomRepo: classroomRepo, teacherRepo: teacherRepo}
+}
+
+func (s ClassroomService) Create(ctx context.Context, classroom core.Classroom) (core.Classroom, error) {
+	classroomModel, err := s.classroomRepo.Create(ctx, core.ClassroomModel{
+		Id:          classroom.Id,
+		Title:       classroom.Title,
+		Description: classroom.Description,
+		TeacherId:   classroom.TeacherId,
+		MaxStudents: classroom.MaxStudents,
+	})
+	if err != nil {
+		return core.Classroom{}, err
+	}
+
+	return core.Classroom{
+		Id:          classroomModel.Id,
+		Title:       classroom.Title,
+		Description: classroom.Description,
+		TeacherId:   classroom.TeacherId,
+		MaxStudents: classroom.MaxStudents,
+	}, nil
 }
 
 func (s ClassroomService) ById(ctx context.Context, id int) (core.Classroom, error) {

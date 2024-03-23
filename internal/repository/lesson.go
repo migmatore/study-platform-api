@@ -2,6 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v4"
+	"github.com/migmatore/study-platform-api/internal/apperrors"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"github.com/migmatore/study-platform-api/internal/repository/psql"
 	"github.com/migmatore/study-platform-api/pkg/logger"
@@ -81,6 +84,38 @@ func (r LessonRepo) All(ctx context.Context, classroomId int) ([]core.LessonMode
 	}
 
 	return lessons, nil
+}
+
+func (r LessonRepo) ById(ctx context.Context, lessonId int) (core.LessonModel, error) {
+	q := `SELECT id, title, classroom_id, content, active FROM lessons WHERE id = $1`
+
+	lesson := core.LessonModel{}
+
+	if err := r.pool.QueryRow(
+		ctx,
+		q,
+		lessonId,
+	).Scan(
+		&lesson.Id,
+		&lesson.Title,
+		&lesson.ClassroomId,
+		&lesson.Content,
+		&lesson.Active,
+	); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return core.LessonModel{}, apperrors.EntityNotFound
+			}
+
+			r.logger.Errorf("Error: %v", err)
+			return core.LessonModel{}, err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return core.LessonModel{}, err
+	}
+
+	return lesson, nil
 }
 
 func (r LessonRepo) Update(ctx context.Context, lesson core.UpdateLessonModel) error {

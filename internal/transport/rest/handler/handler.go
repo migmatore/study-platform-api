@@ -14,6 +14,7 @@ type Deps struct {
 	AuthUseCase      AuthUseCase
 	ClassroomUseCase ClassroomUseCase
 	LessonUseCase    LessonUseCase
+	StudentUseCase   StudentUseCase
 }
 
 type Handler struct {
@@ -22,6 +23,8 @@ type Handler struct {
 
 	auth      *AuthHandler
 	classroom *ClassroomHandler
+	lesson    *LessonHandler
+	student   *StudentHandler
 }
 
 func New(config *config.Config, deps Deps) *Handler {
@@ -29,6 +32,8 @@ func New(config *config.Config, deps Deps) *Handler {
 		config:    config,
 		auth:      NewUserHandler(deps.AuthUseCase),
 		classroom: NewClassroomHandler(deps.ClassroomUseCase, deps.LessonUseCase),
+		lesson:    NewLessonHundler(deps.LessonUseCase),
+		student:   NewStudentsHandler(deps.StudentUseCase),
 	}
 }
 
@@ -58,10 +63,19 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	}))
 	classrooms := v1.Group("/classrooms")
 	classrooms.Get("/", h.classroom.All)
+	classrooms.Post("/", h.classroom.Create)
 	classrooms.Get("/:id/lessons", h.classroom.Lessons)
 	classrooms.Get("/:id/lessons/current", h.classroom.CurrentLesson)
 	classrooms.Post("/:id/lessons", h.classroom.CreateLesson)
 	classrooms.Put("/:id/lessons", h.classroom.UpdateLesson)
+
+	classrooms.Get("/:id/students", h.classroom.Students)
+
+	lessons := v1.Group("/lessons")
+	lessons.Get("/:id", h.lesson.ById)
+
+	students := v1.Group("/students")
+	students.Get("/", h.student.Students)
 
 	return h.app
 }

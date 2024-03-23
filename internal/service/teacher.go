@@ -11,6 +11,7 @@ type TeacherUserRepo interface {
 
 type TeacherClassroomRepo interface {
 	TeacherClassrooms(ctx context.Context, teacherId int) ([]core.ClassroomModel, error)
+	StudentsByClassroomsId(ctx context.Context, ids []int) ([]core.StudentModel, error)
 }
 
 type TeacherRoleRepo interface {
@@ -72,4 +73,36 @@ func (s TeacherService) AllClassrooms(ctx context.Context, teacherId int) ([]cor
 	}
 
 	return classrooms, nil
+}
+
+func (s TeacherService) Students(ctx context.Context, teacherId int) ([]core.Student, error) {
+	classroomsModel, err := s.classroomRepo.TeacherClassrooms(ctx, teacherId)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]int, 0, len(classroomsModel))
+
+	for _, model := range classroomsModel {
+		ids = append(ids, model.Id)
+	}
+
+	studentsModel, err := s.classroomRepo.StudentsByClassroomsId(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	students := make([]core.Student, 0, len(studentsModel))
+
+	for _, student := range studentsModel {
+		students = append(students, core.Student{
+			Id:           student.Id,
+			FullName:     student.FullName,
+			Phone:        student.Phone,
+			Email:        student.Email,
+			ClassroomsId: student.ClassroomsId,
+		})
+	}
+
+	return students, nil
 }

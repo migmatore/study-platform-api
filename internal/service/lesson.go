@@ -7,6 +7,7 @@ import (
 
 type LessonRepo interface {
 	All(ctx context.Context, classroomId int) ([]core.LessonModel, error)
+	ById(ctx context.Context, lessonId int) (core.LessonModel, error)
 	Insert(ctx context.Context, lesson core.LessonModel) (core.LessonModel, error)
 	Update(ctx context.Context, lesson core.UpdateLessonModel) error
 }
@@ -57,6 +58,21 @@ func (s LessonService) All(ctx context.Context, classroomId int) ([]core.Lesson,
 	}
 
 	return lessons, nil
+}
+
+func (s LessonService) ById(ctx context.Context, lessonId int) (core.Lesson, error) {
+	model, err := s.lessonRepo.ById(ctx, lessonId)
+	if err != nil {
+		return core.Lesson{}, err
+	}
+
+	return core.Lesson{
+		Id:          model.Id,
+		Title:       model.Title,
+		ClassroomId: model.ClassroomId,
+		Content:     model.Content,
+		Active:      model.Active,
+	}, nil
 }
 
 func (s LessonService) Update(ctx context.Context, lesson core.UpdateLesson) error {

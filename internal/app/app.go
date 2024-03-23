@@ -68,6 +68,7 @@ func (a *App) Run(ctx context.Context) {
 		AuthUseCase:      useCases.Auth,
 		ClassroomUseCase: useCases.Classroom,
 		LessonUseCase:    useCases.Lesson,
+		StudentUseCase:   useCases.Student,
 	})
 
 	restApp := restHandlers.Init(ctx)
@@ -81,7 +82,7 @@ func (a *App) Run(ctx context.Context) {
 		ClassroomUseCase: useCases.Classroom,
 	})
 
-	wsApp := wsHandlers.Init(ctx)
+	wsApp := wsHandlers.Init()
 
 	wsSrv := websocket.NewWebsocketServer(":"+a.cfg.Server.WSPort, wsApp, a.logger)
 	wsSrv.StartWithGracefulShutdown()

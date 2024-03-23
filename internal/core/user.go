@@ -48,16 +48,26 @@ type UserAuthRequest struct {
 	Token string `json:"token"`
 }
 
+type StudentModel struct {
+	Id           int
+	FullName     string
+	Phone        *string
+	Email        string
+	ClassroomsId []int
+}
+
 type Student struct {
-	Id       int     `json:"id"`
-	FullName string  `json:"full_name"`
-	Phone    *string `json:"phone"`
-	Email    string  `json:"email"`
+	Id           int
+	FullName     string
+	Phone        *string
+	Email        string
+	ClassroomsId []int
 }
 
 type StudentResponse struct {
-	Id       int     `json:"id"`
-	FullName string  `json:"full_name"`
-	Phone    *string `json:"phone"`
-	Email    string  `json:"email"`
+	Id           int     `json:"id"`
+	FullName     string  `json:"full_name"`
+	Phone        *string `json:"phone"`
+	Email        string  `json:"email"`
+	ClassroomsId []int   `json:"classrooms_id,omitempty"`
 }

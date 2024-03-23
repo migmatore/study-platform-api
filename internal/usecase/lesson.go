@@ -9,11 +9,12 @@ import (
 
 type LessonService interface {
 	All(ctx context.Context, classroomId int) ([]core.Lesson, error)
+	ById(ctx context.Context, lessonId int) (core.Lesson, error)
 	Create(ctx context.Context, lesson core.Lesson) (core.Lesson, error)
 	Update(ctx context.Context, lesson core.UpdateLesson) error
 }
 
-type ClassroomService interface {
+type LessonClassroomService interface {
 	ById(ctx context.Context, id int) (core.Classroom, error)
 	IsBelongs(ctx context.Context, classroomId int, teacherId int) (bool, error)
 	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
@@ -27,12 +28,12 @@ type LessonTeacherService interface {
 type LessonUseCase struct {
 	lessonsService   LessonService
 	teacherService   LessonTeacherService
-	classroomService ClassroomService
+	classroomService LessonClassroomService
 }
 
 func NewLessonUseCase(
 	lessonsService LessonService,
-	classroomService ClassroomService,
+	classroomService LessonClassroomService,
 	teacherService LessonTeacherService,
 ) *LessonUseCase {
 	return &LessonUseCase{
@@ -74,6 +75,40 @@ func (uc LessonUseCase) All(
 	}
 
 	return lessonsResp, nil
+}
+
+func (uc LessonUseCase) ById(
+	ctx context.Context,
+	metadata core.TokenMetadata,
+	lessonId int,
+) (core.LessonResponse, error) {
+	if core.RoleType(metadata.Role) == core.StudentRole {
+		return core.LessonResponse{}, apperrors.AccessDenied
+	}
+
+	lesson, err := uc.lessonsService.ById(ctx, lessonId)
+	if err != nil {
+		return core.LessonResponse{}, err
+	}
+
+	// TODO: implement admin access check
+
+	belongs, err := uc.classroomService.IsBelongs(ctx, lesson.ClassroomId, metadata.UserId)
+	if err != nil {
+		return core.LessonResponse{}, err
+	}
+
+	if !belongs {
+		return core.LessonResponse{}, apperrors.AccessDenied
+	}
+
+	return core.LessonResponse{
+		Id:          lesson.Id,
+		Title:       lesson.Title,
+		ClassroomId: lesson.ClassroomId,
+		Content:     lesson.Content,
+		Active:      lesson.Active,
+	}, nil
 }
 
 func (uc LessonUseCase) Current(

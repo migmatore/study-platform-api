@@ -12,9 +12,11 @@ import (
 
 type ClassroomUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata) ([]core.ClassroomResponse, error)
+	Create(ctx context.Context, metadata core.TokenMetadata, req core.CreateClassroomRequest) (core.ClassroomResponse, error)
+	Students(ctx context.Context, metadata core.TokenMetadata, classroomId int) ([]core.StudentResponse, error)
 }
 
-type LessonUseCase interface {
+type ClassroomLessonUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata, classroomId int) ([]core.LessonResponse, error)
 	Current(ctx context.Context, metadata core.TokenMetadata, classroomId int) (core.LessonResponse, error)
 	Create(ctx context.Context, metadata core.TokenMetadata, classroomId int, req core.CreateLessonRequest) (core.LessonResponse, error)
@@ -40,6 +42,28 @@ func (h ClassroomHandler) All(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(classrooms)
+}
+
+func (h ClassroomHandler) Create(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	req := core.CreateClassroomRequest{}
+
+	if err := c.BodyParser(&req); err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, err)
+	}
+
+	newClassroom, err := h.classroomUseCase.Create(ctx, claims, req)
+	if err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(newClassroom)
 }
 
 func (h ClassroomHandler) Lessons(c *fiber.Ctx) error {
@@ -143,4 +167,25 @@ func (h ClassroomHandler) UpdateLesson(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "successful update",
 	})
+}
+
+func (h ClassroomHandler) Students(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	classroomId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be number"))
+	}
+
+	students, err := h.classroomUseCase.Students(ctx, claims, classroomId)
+	if err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.JSON(students)
 }

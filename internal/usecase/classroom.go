@@ -6,29 +6,37 @@ import (
 	"github.com/migmatore/study-platform-api/internal/core"
 )
 
+type ClassroomService interface {
+	Create(ctx context.Context, classroom core.Classroom) (core.Classroom, error)
+	ById(ctx context.Context, id int) (core.Classroom, error)
+	IsBelongs(ctx context.Context, classroomId int, teacherId int) (bool, error)
+	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
+	Students(ctx context.Context, classroomId int) ([]core.Student, error)
+}
+
 type AdminService interface {
 	AllClassrooms(ctx context.Context, studentId int) ([]core.Classroom, error)
 }
 
-type TeacherService interface {
+type ClassroomTeacherService interface {
 	ById(ctx context.Context, id int) (core.User, error)
 	AllClassrooms(ctx context.Context, teacherId int) ([]core.Classroom, error)
 }
 
-type StudentService interface {
+type ClassroomStudentService interface {
 	AllClassrooms(ctx context.Context, studentId int) ([]core.Classroom, error)
 }
 
 type ClassroomUseCase struct {
 	classroomService ClassroomService
 	teacherService   TeacherService
-	studentService   StudentService
+	studentService   ClassroomStudentService
 }
 
 func NewClassroomUseCase(
 	classroomService ClassroomService,
 	teacherService TeacherService,
-	studentService StudentService,
+	studentService ClassroomStudentService,
 ) *ClassroomUseCase {
 	return &ClassroomUseCase{
 		classroomService: classroomService,
@@ -37,7 +45,7 @@ func NewClassroomUseCase(
 	}
 }
 
-func (uc *ClassroomUseCase) All(ctx context.Context, metadata core.TokenMetadata) ([]core.ClassroomResponse, error) {
+func (uc ClassroomUseCase) All(ctx context.Context, metadata core.TokenMetadata) ([]core.ClassroomResponse, error) {
 	switch core.RoleType(metadata.Role) {
 	case core.AdminRole:
 	case core.TeacherRole:
@@ -84,7 +92,35 @@ func (uc *ClassroomUseCase) All(ctx context.Context, metadata core.TokenMetadata
 	return nil, nil
 }
 
-func (uc *ClassroomUseCase) Students(
+func (uc ClassroomUseCase) Create(
+	ctx context.Context,
+	metadata core.TokenMetadata,
+	req core.CreateClassroomRequest,
+) (core.ClassroomResponse, error) {
+	if core.RoleType(metadata.Role) != core.TeacherRole {
+		return core.ClassroomResponse{}, apperrors.AccessDenied
+	}
+
+	newClassroom, err := uc.classroomService.Create(ctx, core.Classroom{
+		Title:       req.Title,
+		Description: req.Description,
+		TeacherId:   metadata.UserId,
+		MaxStudents: req.MaxStudents,
+	})
+	if err != nil {
+		return core.ClassroomResponse{}, err
+	}
+
+	return core.ClassroomResponse{
+		Id:          newClassroom.Id,
+		Title:       newClassroom.Title,
+		Description: newClassroom.Description,
+		TeacherId:   newClassroom.TeacherId,
+		MaxStudents: newClassroom.MaxStudents,
+	}, nil
+}
+
+func (uc ClassroomUseCase) Students(
 	ctx context.Context,
 	metadata core.TokenMetadata,
 	classroomId int,
