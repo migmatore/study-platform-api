@@ -40,10 +40,11 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			fmt.Println(len(h.clients))
 			for client := range h.clients {
 				for _, to := range message.To {
 					if client.userId == to.Id && to.role == core.StudentRole {
-						fmt.Println(len(h.clients))
+
 						select {
 						case client.send <- message.Data:
 						default:

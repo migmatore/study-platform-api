@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"log"
@@ -15,7 +16,7 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -58,6 +59,7 @@ func NewClient(args ClientArgs, deps ClientDeps) *Client {
 
 func (c *Client) readPump() {
 	defer func() {
+		fmt.Println("close connection from readPump")
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -70,10 +72,6 @@ func (c *Client) readPump() {
 	})
 
 	for {
-		if c.userRole != core.TeacherRole {
-			continue
-		}
-
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -81,6 +79,12 @@ func (c *Client) readPump() {
 			}
 
 			break
+		}
+
+		fmt.Println("read")
+
+		if c.userRole != core.TeacherRole {
+			continue
 		}
 
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
@@ -145,9 +149,13 @@ func (c *Client) writePump() {
 
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
-			w.Write(message)
+			_, err = w.Write(message)
+			if err != nil {
+				return
+			}
 
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
