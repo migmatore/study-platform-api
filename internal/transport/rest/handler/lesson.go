@@ -22,11 +22,11 @@ type LessonHandler struct {
 	lessonUseCase LessonUseCase
 }
 
-func NewLessonHundler(lessonUseCase LessonUseCase) *LessonHandler {
+func NewLessonHandler(lessonUseCase LessonUseCase) *LessonHandler {
 	return &LessonHandler{lessonUseCase: lessonUseCase}
 }
 
-func (h *LessonHandler) ById(c *fiber.Ctx) error {
+func (h LessonHandler) ById(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	claims := jwt.ExtractTokenMetadata(c)
 

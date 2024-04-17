@@ -19,7 +19,7 @@ type AuthHandler struct {
 	authUseCase AuthUseCase
 }
 
-func NewUserHandler(authUseCase AuthUseCase) *AuthHandler {
+func NewAuthHandler(authUseCase AuthUseCase) *AuthHandler {
 	return &AuthHandler{authUseCase: authUseCase}
 }
 
@@ -44,7 +44,7 @@ func (h AuthHandler) Signin(c *fiber.Ctx) error {
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 func (h AuthHandler) Signup(c *fiber.Ctx) error {

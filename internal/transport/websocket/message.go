@@ -6,6 +6,8 @@ type MessageType int
 
 const (
 	AuthRequest MessageType = iota + 1
+	VirtualPointer
+	Call
 )
 
 type Receiver struct {

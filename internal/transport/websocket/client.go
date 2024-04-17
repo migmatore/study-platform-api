@@ -16,7 +16,7 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 10 * time.Second
+	pongWait = 60 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -90,9 +90,9 @@ func (c *Client) readPump() {
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 
 		req := struct {
-			Type        int    `json:"type"`
-			ClassroomId int    `json:"classroom_id"`
-			ElementId   string `json:"element_id"`
+			Type        int     `json:"type"`
+			ClassroomId int     `json:"classroom_id"`
+			ElementId   *string `json:"element_id,omitempty"`
 		}{}
 
 		if err := json.Unmarshal(message, &req); err != nil {

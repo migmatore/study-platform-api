@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserService interface {
+type AuthUserService interface {
 	IsExist(ctx context.Context, email string) (bool, error)
 	IsExistById(ctx context.Context, id int) (bool, error)
 	ByEmail(ctx context.Context, email string) (core.User, error)
@@ -31,14 +31,14 @@ type TokenService interface {
 
 type AuthUseCase struct {
 	transactionService TransactionService
-	userService        UserService
+	userService        AuthUserService
 	institutionService InstitutionService
 	tokenService       TokenService
 }
 
 func NewAuthUseCase(
 	transactionService TransactionService,
-	userService UserService,
+	userService AuthUserService,
 	institutionService InstitutionService,
 	tokenService TokenService,
 ) *AuthUseCase {

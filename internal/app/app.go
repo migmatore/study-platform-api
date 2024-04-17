@@ -66,6 +66,7 @@ func (a *App) Run(ctx context.Context) {
 	a.logger.Info("Handlers initializing...")
 	restHandlers := restHandler.New(a.cfg, restHandler.Deps{
 		AuthUseCase:      useCases.Auth,
+		UserUseCase:      useCases.User,
 		ClassroomUseCase: useCases.Classroom,
 		LessonUseCase:    useCases.Lesson,
 		StudentUseCase:   useCases.Student,
@@ -84,6 +85,6 @@ func (a *App) Run(ctx context.Context) {
 
 	wsApp := wsHandlers.Init()
 
-	wsSrv := websocket.NewWebsocketServer(":"+a.cfg.Server.WSPort, wsApp, a.logger)
+	wsSrv := websocket.NewWebsocketServer("0.0.0.0:"+a.cfg.Server.WSPort, wsApp, a.logger)
 	wsSrv.StartWithGracefulShutdown()
 }

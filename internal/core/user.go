@@ -67,7 +67,13 @@ type Student struct {
 type StudentResponse struct {
 	Id           int     `json:"id"`
 	FullName     string  `json:"full_name"`
-	Phone        *string `json:"phone"`
+	Phone        *string `json:"phone,omitempty"`
 	Email        string  `json:"email"`
 	ClassroomsId []int   `json:"classrooms_id,omitempty"`
+}
+
+type ProfileResponse struct {
+	FullName string  `json:"full_name"`
+	Phone    *string `json:"phone,omitempty"`
+	Email    string  `json:"email"`
 }

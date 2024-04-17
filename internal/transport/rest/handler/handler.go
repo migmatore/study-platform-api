@@ -12,6 +12,7 @@ import (
 
 type Deps struct {
 	AuthUseCase      AuthUseCase
+	UserUseCase      UserUseCase
 	ClassroomUseCase ClassroomUseCase
 	LessonUseCase    LessonUseCase
 	StudentUseCase   StudentUseCase
@@ -22,6 +23,7 @@ type Handler struct {
 	app    *fiber.App
 
 	auth      *AuthHandler
+	user      *UserHandler
 	classroom *ClassroomHandler
 	lesson    *LessonHandler
 	student   *StudentHandler
@@ -30,9 +32,10 @@ type Handler struct {
 func New(config *config.Config, deps Deps) *Handler {
 	return &Handler{
 		config:    config,
-		auth:      NewUserHandler(deps.AuthUseCase),
+		auth:      NewAuthHandler(deps.AuthUseCase),
+		user:      NewUserHandler(deps.UserUseCase),
 		classroom: NewClassroomHandler(deps.ClassroomUseCase, deps.LessonUseCase),
-		lesson:    NewLessonHundler(deps.LessonUseCase),
+		lesson:    NewLessonHandler(deps.LessonUseCase),
 		student:   NewStudentsHandler(deps.StudentUseCase),
 	}
 }
@@ -61,6 +64,9 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 		ContextKey:   "jwt",
 		ErrorHandler: jwt.JwtError,
 	}))
+	users := v1.Group("/users")
+	users.Get("/profile", h.user.Profile)
+
 	classrooms := v1.Group("/classrooms")
 	classrooms.Get("/", h.classroom.All)
 	classrooms.Post("/", h.classroom.Create)

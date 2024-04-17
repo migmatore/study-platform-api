@@ -3,7 +3,7 @@ server:
   ws_port: 8082
   mode: dev
   jwt_secret_key: secretkey
-  jwt_exp_time_min: 5
+  jwt_exp_time_min: 1
   ws_jwt_secret_key: wssecretkey
   ws_jwt_exp_time_hour: 24
   jwt_refresh_secret_key: refreshsecretkey
