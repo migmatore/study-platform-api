@@ -28,10 +28,7 @@ func main() {
 	appLogger.InitLogger()
 	appLogger.Infof("LogLevel: %s, Mode: %s", cfg.Logger.Level, cfg.Server.Mode)
 
-	a, err := app.NewApp(cfg, appLogger)
-	if err != nil {
-		appLogger.Fatal(err)
-	}
+	a := app.NewApp(cfg, appLogger)
 
 	a.Run(ctx)
 }

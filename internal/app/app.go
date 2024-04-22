@@ -18,11 +18,11 @@ type App struct {
 	logger logger.Logger
 }
 
-func NewApp(cfg *config.Config, logger logger.Logger) (App, error) {
+func NewApp(cfg *config.Config, logger logger.Logger) App {
 	return App{
 		cfg:    cfg,
 		logger: logger,
-	}, nil
+	}
 }
 
 func (a *App) Run(ctx context.Context) {
