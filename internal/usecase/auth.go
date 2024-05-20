@@ -219,9 +219,7 @@ func (uc AuthUseCase) Refresh(ctx context.Context, req core.UserTokenRefreshRequ
 
 	refreshTokenClaims, err := uc.tokenService.RefreshToken(user.Id)
 	if err != nil {
-		if err != nil {
-			return core.UserAuthResponse{}, err
-		}
+		return core.UserAuthResponse{}, err
 	}
 
 	return core.UserAuthResponse{

@@ -11,6 +11,7 @@ type UserRepo interface {
 	Create(ctx context.Context, user core.UserModel) (core.UserModel, error)
 	ByEmail(ctx context.Context, email string) (core.UserModel, error)
 	ById(ctx context.Context, id int) (core.UserModel, error)
+	UpdateProfile(ctx context.Context, userId int, profile core.UpdateUserProfileModel) (core.UserProfileModel, error)
 }
 
 type UserRoleRepo interface {
@@ -119,5 +120,23 @@ func (s UserService) ById(ctx context.Context, id int) (core.User, error) {
 		PasswordHash: userModel.PasswordHash,
 		Role:         core.RoleType(role.Name),
 		Institution:  nil,
+	}, nil
+}
+
+func (s UserService) UpdateProfile(ctx context.Context, userId int, profile core.UpdateUserProfile) (core.UserProfile, error) {
+	model, err := s.userRepo.UpdateProfile(ctx, userId, core.UpdateUserProfileModel{
+		FullName: profile.FullName,
+		Phone:    profile.Phone,
+		Email:    profile.Email,
+		Password: profile.Password,
+	})
+	if err != nil {
+		return core.UserProfile{}, err
+	}
+
+	return core.UserProfile{
+		FullName: model.FullName,
+		Phone:    model.Phone,
+		Email:    model.Email,
 	}, nil
 }

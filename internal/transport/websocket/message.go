@@ -8,6 +8,13 @@ const (
 	AuthRequest MessageType = iota + 1
 	VirtualPointer
 	Call
+	ErrorResp
+)
+
+type ErrorType int
+
+const (
+	ExpiredTokenError ErrorType = iota
 )
 
 type Receiver struct {

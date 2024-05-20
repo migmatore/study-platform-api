@@ -42,7 +42,7 @@ func (h LessonHandler) ById(c *fiber.Ctx) error {
 		}
 
 		if errors.Is(err, apperrors.EntityNotFound) {
-			return utils.FiberError(c, fiber.StatusNoContent, err)
+			return utils.FiberError(c, fiber.StatusNotFound, err)
 		}
 
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)

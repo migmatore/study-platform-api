@@ -3,17 +3,20 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	httpLog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/migmatore/study-platform-api/config"
+	"github.com/migmatore/study-platform-api/internal/apperrors"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"log"
 )
 
 type AuthUseCase interface {
 	Auth(ctx context.Context, req core.UserAuthRequest) (core.TokenMetadata, error)
+	Refresh(ctx context.Context, req core.UserTokenRefreshRequest) (core.UserAuthResponse, error)
 }
 
 type ClassroomUseCase interface {
@@ -52,34 +55,59 @@ func (h *Handler) Init() *fiber.App {
 	go h.hub.Run()
 
 	h.app.Get("/ws", websocket.New(func(conn *websocket.Conn) {
+		// TODO REFACTOR THIS SHIT!!!!!!
 		_, m, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("error ", err)
 			conn.WriteMessage(websocket.CloseMessage, []byte{})
+			conn.Close()
+
 			return
 		}
 
 		req := struct {
 			Type  MessageType `json:"type"`
-			Token string      `json:"token"`
+			Token *string     `json:"token,omitempty"`
 		}{}
 
 		if err := json.Unmarshal(m, &req); err != nil {
 			log.Println("error ", err)
 			conn.WriteMessage(websocket.CloseMessage, []byte{})
+			conn.Close()
+
 			return
 		}
 
 		if req.Type != AuthRequest {
 			log.Println("error user must request auth")
 			conn.WriteMessage(websocket.CloseMessage, []byte{})
+			conn.Close()
+
 			return
 		}
 
-		metadata, err := h.authUseCase.Auth(context.Background(), core.UserAuthRequest{Token: req.Token})
+		if req.Token == nil || *req.Token == "" {
+			log.Println("error user must provide token")
+			conn.WriteMessage(websocket.CloseMessage, []byte{})
+			conn.Close()
+
+			return
+		}
+
+		metadata, err := h.authUseCase.Auth(context.Background(), core.UserAuthRequest{Token: *req.Token})
 		if err != nil {
 			log.Println("error ", err)
+
+			if errors.Is(err, apperrors.ExpiredToken) {
+				conn.WriteJSON(map[string]interface{}{
+					"type":       ErrorResp,
+					"error_type": ExpiredTokenError,
+				})
+			}
+
 			conn.WriteMessage(websocket.CloseMessage, []byte{})
+			conn.Close()
+
 			return
 		}
 

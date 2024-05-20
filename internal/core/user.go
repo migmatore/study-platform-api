@@ -20,6 +20,32 @@ type User struct {
 	Institution  *Institution
 }
 
+type UserProfile struct {
+	FullName string
+	Phone    *string
+	Email    string
+}
+
+type UserProfileModel struct {
+	FullName string
+	Phone    *string
+	Email    string
+}
+
+type UpdateUserProfileModel struct {
+	FullName *string
+	Phone    *string
+	Email    *string
+	Password *string
+}
+
+type UpdateUserProfile struct {
+	FullName *string
+	Phone    *string
+	Email    *string
+	Password *string
+}
+
 type UserSigninRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -76,4 +102,11 @@ type ProfileResponse struct {
 	FullName string  `json:"full_name"`
 	Phone    *string `json:"phone,omitempty"`
 	Email    string  `json:"email"`
+}
+
+type UpdateProfileRequest struct {
+	FullName *string `json:"full_name,omitempty"`
+	Phone    *string `json:"phone,omitempty"`
+	Email    *string `json:"email,omitempty"`
+	Password *string `json:"password,omitempty"`
 }

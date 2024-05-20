@@ -141,3 +141,48 @@ func (r UserRepo) ById(ctx context.Context, id int) (core.UserModel, error) {
 
 	return u, nil
 }
+
+func (r UserRepo) UpdateProfile(
+	ctx context.Context,
+	userId int,
+	profile core.UpdateUserProfileModel,
+) (core.UserProfileModel, error) {
+	updateQuery := psql.NewSQLUpdateBuilder("users")
+
+	if profile.FullName != nil {
+		updateQuery.AddUpdateColumn("full_name", *profile.FullName)
+	}
+
+	if profile.Phone != nil {
+		updateQuery.AddUpdateColumn("phone", *profile.Phone)
+	}
+
+	if profile.Email != nil {
+		updateQuery.AddUpdateColumn("email", *profile.Email)
+	}
+
+	if profile.Password != nil {
+		updateQuery.AddUpdateColumn("password_hash", *profile.Password)
+	}
+
+	updateQuery.AddWhere("id", userId)
+	updateQuery.AddReturning("full_name", "phone", "email")
+
+	var p core.UserProfileModel
+
+	if err := r.pool.QueryRow(ctx, updateQuery.GetQuery(), updateQuery.GetValues()...).Scan(
+		&p.FullName,
+		&p.Email,
+		&p.Phone,
+	); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			r.logger.Errorf("Error: %v", err)
+			return core.UserProfileModel{}, err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return core.UserProfileModel{}, err
+	}
+
+	return p, nil
+}

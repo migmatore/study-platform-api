@@ -66,6 +66,7 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	}))
 	users := v1.Group("/users")
 	users.Get("/profile", h.user.Profile)
+	users.Put("/profile", h.user.UpdateProfile)
 
 	classrooms := v1.Group("/classrooms")
 	classrooms.Get("/", h.classroom.All)
