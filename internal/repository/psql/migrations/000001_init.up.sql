@@ -34,8 +34,8 @@ CREATE TABLE classrooms
 CREATE TABLE classroom_students
 (
     id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    classroom_id INT NOT NULL REFERENCES classrooms(id),
-    student_id INT NOT NULL REFERENCES users(id)
+    classroom_id INT NOT NULL REFERENCES classrooms(id) ON DELETE CASCADE,
+    student_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE lessons

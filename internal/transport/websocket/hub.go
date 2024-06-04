@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/migmatore/study-platform-api/internal/core"
 )
 
 type Hub struct {
@@ -40,11 +39,9 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
-			fmt.Println(len(h.clients))
 			for client := range h.clients {
 				for _, to := range message.To {
-					if client.userId == to.Id && to.role == core.StudentRole {
-
+					if client.userId == to.Id {
 						select {
 						case client.send <- message.Data:
 						default:

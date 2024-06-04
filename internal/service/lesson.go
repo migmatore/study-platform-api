@@ -10,14 +10,20 @@ type LessonRepo interface {
 	ById(ctx context.Context, lessonId int) (core.LessonModel, error)
 	Insert(ctx context.Context, lesson core.LessonModel) (core.LessonModel, error)
 	Update(ctx context.Context, lesson core.UpdateLessonModel) error
+	Delete(ctx context.Context, id int) error
+}
+
+type LessonClassroomRepo interface {
+	ById(ctx context.Context, id int) (core.ClassroomModel, error)
 }
 
 type LessonService struct {
-	lessonRepo LessonRepo
+	lessonRepo    LessonRepo
+	classroomRepo LessonClassroomRepo
 }
 
-func NewLessonService(lessonRepo LessonRepo) *LessonService {
-	return &LessonService{lessonRepo: lessonRepo}
+func NewLessonService(lessonRepo LessonRepo, classroomRepo LessonClassroomRepo) *LessonService {
+	return &LessonService{lessonRepo: lessonRepo, classroomRepo: classroomRepo}
 }
 
 func (s LessonService) Create(ctx context.Context, lesson core.Lesson) (core.Lesson, error) {
@@ -83,4 +89,21 @@ func (s LessonService) Update(ctx context.Context, lesson core.UpdateLesson) err
 		Content:     lesson.Content,
 		Active:      lesson.Active,
 	})
+}
+
+func (s LessonService) Delete(ctx context.Context, id int) error {
+	return s.lessonRepo.Delete(ctx, id)
+}
+func (s LessonService) IsBelongs(ctx context.Context, lessonId int, teacherId int) (bool, error) {
+	lesson, err := s.lessonRepo.ById(ctx, lessonId)
+	if err != nil {
+		return false, err
+	}
+
+	classroom, err := s.classroomRepo.ById(ctx, lesson.ClassroomId)
+	if err != nil {
+		return false, err
+	}
+
+	return classroom.TeacherId == teacherId, nil
 }

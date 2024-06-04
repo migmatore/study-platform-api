@@ -71,6 +71,7 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	classrooms := v1.Group("/classrooms")
 	classrooms.Get("/", h.classroom.All)
 	classrooms.Post("/", h.classroom.Create)
+	classrooms.Delete("/:id", h.classroom.Delete)
 	classrooms.Get("/:id/lessons", h.classroom.Lessons)
 	classrooms.Get("/:id/lessons/current", h.classroom.CurrentLesson)
 	classrooms.Post("/:id/lessons", h.classroom.CreateLesson)
@@ -80,9 +81,11 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 
 	lessons := v1.Group("/lessons")
 	lessons.Get("/:id", h.lesson.ById)
+	lessons.Delete("/:id", h.lesson.Delete)
 
 	students := v1.Group("/students")
 	students.Get("/", h.student.Students)
+	students.Post("/", h.student.Create)
 
 	return h.app
 }

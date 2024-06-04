@@ -8,6 +8,7 @@ const (
 	AuthRequest MessageType = iota + 1
 	VirtualPointer
 	Call
+	NewRoom
 	ErrorResp
 )
 

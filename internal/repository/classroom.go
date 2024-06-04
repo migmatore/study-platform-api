@@ -49,6 +49,22 @@ func (r ClassroomRepo) Create(ctx context.Context, classroom core.ClassroomModel
 	return newCLassroom, nil
 }
 
+func (r ClassroomRepo) Delete(ctx context.Context, id int) error {
+	q := `DELETE FROM classrooms WHERE id = $1`
+
+	if _, err := r.pool.Exec(ctx, q, id); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			r.logger.Errorf("Error: %v", err)
+			return err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (r ClassroomRepo) ById(ctx context.Context, id int) (core.ClassroomModel, error) {
 	q := `SELECT id, title, description, teacher_id, max_students FROM classrooms WHERE id = $1`
 

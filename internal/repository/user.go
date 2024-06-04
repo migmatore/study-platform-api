@@ -172,8 +172,8 @@ func (r UserRepo) UpdateProfile(
 
 	if err := r.pool.QueryRow(ctx, updateQuery.GetQuery(), updateQuery.GetValues()...).Scan(
 		&p.FullName,
-		&p.Email,
 		&p.Phone,
+		&p.Email,
 	); err != nil {
 		if err := utils.ParsePgError(err); err != nil {
 			r.logger.Errorf("Error: %v", err)

@@ -34,6 +34,6 @@ func New(config *config.Config, deps Deps) *Service {
 		Teacher:     NewTeacherService(deps.ClassroomRepo, deps.UserRepo, deps.RoleRepo),
 		Student:     NewStudentService(deps.ClassroomRepo),
 		Classroom:   NewClassroomService(deps.ClassroomRepo, deps.UserRepo),
-		Lesson:      NewLessonService(deps.LessonRepo),
+		Lesson:      NewLessonService(deps.LessonRepo, deps.ClassroomRepo),
 	}
 }

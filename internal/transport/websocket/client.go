@@ -90,9 +90,9 @@ func (c *Client) readPump() {
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 
 		req := struct {
-			Type        int     `json:"type"`
-			ClassroomId int     `json:"classroom_id"`
-			ElementId   *string `json:"element_id,omitempty"`
+			Type        MessageType `json:"type"`
+			ClassroomId int         `json:"classroom_id"`
+			ElementId   *string     `json:"element_id,omitempty"`
 		}{}
 
 		if err := json.Unmarshal(message, &req); err != nil {
@@ -115,7 +115,7 @@ func (c *Client) readPump() {
 			break
 		}
 
-		to := make([]Receiver, 0, len(students))
+		to := make([]Receiver, 0)
 
 		for _, student := range students {
 			to = append(to, Receiver{
@@ -123,6 +123,19 @@ func (c *Client) readPump() {
 				role: core.StudentRole,
 			})
 		}
+
+		//if req.Type == NewRoom {
+		//	at := auth.NewAccessToken(os.GetEnv("LIVEKIT_API_KEY"), os.GetEnv("LIVEKIT_API_SECRET"))
+		//	grant := &auth.VideoGrant{
+		//		RoomJoin: true,
+		//		Room:     "",
+		//	}
+		//	at.AddGrant(grant).
+		//		SetIdentity("").
+		//		SetValidFor(time.Hour)
+		//
+		//	c.send <- at.
+		//}
 
 		msg := NewMessage(message, to)
 

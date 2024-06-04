@@ -12,6 +12,7 @@ import (
 
 type StudentUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata) ([]core.StudentResponse, error)
+	Create(ctx context.Context, metadata core.TokenMetadata, req core.CreateStudentRequest) (core.StudentResponse, error)
 }
 
 type StudentHandler struct {
@@ -36,4 +37,24 @@ func (h StudentHandler) Students(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(students)
+}
+func (h StudentHandler) CreateStudent(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+	req := core.CreateStudentRequest{}
+
+	if err := c.BodyParser(&req); err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, err)
+	}
+
+	student, err := h.studentUseCase.Create(ctx, claims, req)
+	if err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(student)
 }

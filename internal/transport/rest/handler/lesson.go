@@ -16,6 +16,7 @@ type LessonUseCase interface {
 	Current(ctx context.Context, metadata core.TokenMetadata, classroomId int) (core.LessonResponse, error)
 	Create(ctx context.Context, metadata core.TokenMetadata, classroomId int, req core.CreateLessonRequest) (core.LessonResponse, error)
 	Update(ctx context.Context, metadata core.TokenMetadata, req core.UpdateLessonRequest) error
+	Delete(ctx context.Context, metadata core.TokenMetadata, lessonId int) error
 }
 
 type LessonHandler struct {
@@ -49,4 +50,26 @@ func (h LessonHandler) ById(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(lesson)
+}
+
+func (h LessonHandler) Delete(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	lessonId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be number"))
+	}
+
+	if err := h.lessonUseCase.Delete(ctx, claims, lessonId); err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "lesson successfully deleted",
+	})
 }

@@ -13,6 +13,7 @@ import (
 type ClassroomUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata) ([]core.ClassroomResponse, error)
 	Create(ctx context.Context, metadata core.TokenMetadata, req core.CreateClassroomRequest) (core.ClassroomResponse, error)
+	Delete(ctx context.Context, metadata core.TokenMetadata, id int) error
 	Students(ctx context.Context, metadata core.TokenMetadata, classroomId int) ([]core.StudentResponse, error)
 }
 
@@ -64,6 +65,28 @@ func (h ClassroomHandler) Create(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(newClassroom)
+}
+
+func (h ClassroomHandler) Delete(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	classroomId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be int"))
+	}
+
+	if err := h.classroomUseCase.Delete(ctx, claims, classroomId); err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "classroom successfully deleted",
+	})
 }
 
 func (h ClassroomHandler) Lessons(c *fiber.Ctx) error {

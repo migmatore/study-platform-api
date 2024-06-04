@@ -7,6 +7,7 @@ import (
 
 type ClassroomRepo interface {
 	Create(ctx context.Context, classroom core.ClassroomModel) (core.ClassroomModel, error)
+	Delete(ctx context.Context, id int) error
 	TeacherClassrooms(ctx context.Context, teacherId int) ([]core.ClassroomModel, error)
 	StudentClassrooms(ctx context.Context, studentId int) ([]core.ClassroomModel, error)
 	ById(ctx context.Context, id int) (core.ClassroomModel, error)
@@ -49,6 +50,10 @@ func (s ClassroomService) Create(ctx context.Context, classroom core.Classroom) 
 	}, nil
 }
 
+func (s ClassroomService) Delete(ctx context.Context, id int) error {
+	return s.classroomRepo.Delete(ctx, id)
+}
+
 func (s ClassroomService) ById(ctx context.Context, id int) (core.Classroom, error) {
 	classroomModel, err := s.classroomRepo.ById(ctx, id)
 	if err != nil {
@@ -65,17 +70,12 @@ func (s ClassroomService) ById(ctx context.Context, id int) (core.Classroom, err
 }
 
 func (s ClassroomService) IsBelongs(ctx context.Context, classroomId, teacherId int) (bool, error) {
-	teacher, err := s.teacherRepo.ById(ctx, teacherId)
-	if err != nil {
-		return false, err
-	}
-
 	classroom, err := s.classroomRepo.ById(ctx, classroomId)
 	if err != nil {
 		return false, err
 	}
 
-	return classroom.TeacherId == teacher.Id, nil
+	return classroom.TeacherId == teacherId, nil
 }
 
 func (s ClassroomService) IsIn(ctx context.Context, classroomId, studentId int) (bool, error) {

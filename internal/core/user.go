@@ -110,3 +110,11 @@ type UpdateProfileRequest struct {
 	Email    *string `json:"email,omitempty"`
 	Password *string `json:"password,omitempty"`
 }
+
+type CreateStudentRequest struct {
+	FullName     string  `json:"full_name"`
+	Phone        *string `json:"phone,omitempty"`
+	Email        string  `json:"email"`
+	Password     string  `json:"password"`
+	ClassroomsId []int   `json:"classrooms_id"`
+}

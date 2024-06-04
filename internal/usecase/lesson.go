@@ -12,6 +12,8 @@ type LessonService interface {
 	ById(ctx context.Context, lessonId int) (core.Lesson, error)
 	Create(ctx context.Context, lesson core.Lesson) (core.Lesson, error)
 	Update(ctx context.Context, lesson core.UpdateLesson) error
+	Delete(ctx context.Context, id int) error
+	IsBelongs(ctx context.Context, lessonId int, teacherId int) (bool, error)
 }
 
 type LessonClassroomService interface {
@@ -258,6 +260,30 @@ func (uc LessonUseCase) Update(
 		Active:      req.Active,
 	}); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (uc LessonUseCase) Delete(ctx context.Context, metadata core.TokenMetadata, lessonId int) error {
+	switch core.RoleType(metadata.Role) {
+	case core.AdminRole:
+		return apperrors.AccessDenied
+	case core.TeacherRole:
+		isBelongs, err := uc.lessonsService.IsBelongs(ctx, lessonId, metadata.UserId)
+		if err != nil {
+			return err
+		}
+
+		if !isBelongs {
+			return apperrors.AccessDenied
+		}
+
+		if err := uc.lessonsService.Delete(ctx, lessonId); err != nil {
+			return err
+		}
+	case core.StudentRole:
+		return apperrors.AccessDenied
 	}
 
 	return nil

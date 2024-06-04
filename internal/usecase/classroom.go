@@ -8,6 +8,7 @@ import (
 
 type ClassroomService interface {
 	Create(ctx context.Context, classroom core.Classroom) (core.Classroom, error)
+	Delete(ctx context.Context, id int) error
 	ById(ctx context.Context, id int) (core.Classroom, error)
 	IsBelongs(ctx context.Context, classroomId int, teacherId int) (bool, error)
 	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
@@ -118,6 +119,30 @@ func (uc ClassroomUseCase) Create(
 		TeacherId:   newClassroom.TeacherId,
 		MaxStudents: newClassroom.MaxStudents,
 	}, nil
+}
+
+func (uc ClassroomUseCase) Delete(ctx context.Context, metadata core.TokenMetadata, id int) error {
+	switch core.RoleType(metadata.Role) {
+	case core.AdminRole:
+		return apperrors.AccessDenied
+	case core.TeacherRole:
+		belongs, err := uc.classroomService.IsBelongs(ctx, id, metadata.UserId)
+		if err != nil {
+			return err
+		}
+
+		if !belongs {
+			return apperrors.AccessDenied
+		}
+
+		if err := uc.classroomService.Delete(ctx, id); err != nil {
+			return err
+		}
+	case core.StudentRole:
+		return apperrors.AccessDenied
+	}
+
+	return nil
 }
 
 func (uc ClassroomUseCase) Students(
