@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/migmatore/study-platform-api/internal/core"
 )
 
@@ -14,6 +15,7 @@ type ClassroomRepo interface {
 	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
 	Students(ctx context.Context, classroomId int) ([]core.UserModel, error)
 	StudentsByClassroomsId(ctx context.Context, ids []int) ([]core.StudentModel, error)
+	AddStudent(ctx context.Context, studentId int, classroomsId []int) error
 }
 
 type ClassroomTeacherUserRepo interface {
@@ -100,4 +102,12 @@ func (s ClassroomService) Students(ctx context.Context, classroomId int) ([]core
 	}
 
 	return students, nil
+}
+
+func (s ClassroomService) AddStudent(ctx context.Context, studentId int, classroomsId []int) error {
+	if len(classroomsId) == 0 {
+		return errors.New("classrooms id can not be empty")
+	}
+
+	return s.classroomRepo.AddStudent(ctx, studentId, classroomsId)
 }

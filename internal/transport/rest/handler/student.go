@@ -38,7 +38,7 @@ func (h StudentHandler) Students(c *fiber.Ctx) error {
 
 	return c.JSON(students)
 }
-func (h StudentHandler) CreateStudent(c *fiber.Ctx) error {
+func (h StudentHandler) Create(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	claims := jwt.ExtractTokenMetadata(c)
 	req := core.CreateStudentRequest{}
@@ -51,6 +51,14 @@ func (h StudentHandler) CreateStudent(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, apperrors.AccessDenied) {
 			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		if errors.Is(err, apperrors.EntityAlreadyExist) {
+			return utils.FiberError(c, fiber.StatusConflict, err)
+		}
+
+		if errors.Is(err, apperrors.NumberOfStudentsExceeded) {
+			return utils.FiberError(c, fiber.StatusBadRequest, err)
 		}
 
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)

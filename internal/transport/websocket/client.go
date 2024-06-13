@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gofiber/contrib/websocket"
+	"github.com/google/uuid"
+	"github.com/livekit/protocol/auth"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"log"
 	"time"
@@ -57,6 +59,7 @@ func NewClient(args ClientArgs, deps ClientDeps) *Client {
 	return &Client{hub: args.hub, conn: args.conn, userId: args.userId, userRole: args.userRole, send: make(chan []byte, 256), classroomUseCase: deps.classroomUseCase}
 }
 
+// TODO: REFACTOR!!!!
 func (c *Client) readPump() {
 	defer func() {
 		fmt.Println("close connection from readPump")
@@ -124,18 +127,57 @@ func (c *Client) readPump() {
 			})
 		}
 
-		//if req.Type == NewRoom {
-		//	at := auth.NewAccessToken(os.GetEnv("LIVEKIT_API_KEY"), os.GetEnv("LIVEKIT_API_SECRET"))
-		//	grant := &auth.VideoGrant{
-		//		RoomJoin: true,
-		//		Room:     "",
-		//	}
-		//	at.AddGrant(grant).
-		//		SetIdentity("").
-		//		SetValidFor(time.Hour)
-		//
-		//	c.send <- at.
-		//}
+		if req.Type == NewRoom {
+			at := auth.NewAccessToken("APIZxVphSP9wcLk", "umceP0rAfax3K5fEUelwJV6LWLqQDyJLOflf9hA9524H")
+
+			roomName, _ := uuid.NewUUID()
+
+			grant := &auth.VideoGrant{
+				RoomJoin: true,
+				Room:     roomName.String(),
+			}
+			at.AddGrant(grant).
+				SetIdentity("Учитель").
+				SetValidFor(time.Hour)
+
+			token, _ := at.ToJWT()
+
+			jsonMsg, _ := json.Marshal(struct {
+				Type      MessageType `json:"type"`
+				JoinToken string      `json:"join_token"`
+			}{
+				Type:      NewRoom,
+				JoinToken: token,
+			})
+
+			c.send <- jsonMsg
+
+			for client := range c.hub.clients {
+				grant := &auth.VideoGrant{
+					RoomJoin: true,
+					Room:     roomName.String(),
+				}
+				at.AddGrant(grant).
+					SetIdentity(fmt.Sprintf("student-%d", client.userId)).
+					SetValidFor(time.Hour)
+
+				studentToken, _ := at.ToJWT()
+
+				jsonMsg, _ := json.Marshal(struct {
+					Type      MessageType `json:"type"`
+					JoinToken string      `json:"join_token"`
+				}{
+					Type:      NewRoom,
+					JoinToken: studentToken,
+				})
+
+				if client.userRole == core.StudentRole {
+					client.send <- jsonMsg
+				}
+			}
+
+			continue
+		}
 
 		msg := NewMessage(message, to)
 

@@ -19,7 +19,7 @@ CREATE TABLE users
     email          VARCHAR(50)  NOT NULL UNIQUE,
     password_hash  VARCHAR(100) NOT NULL,
     role_id        INT          NOT NULL REFERENCES roles (id),
-    institution_id INT REFERENCES institutions (id)
+    institution_id INT REFERENCES institutions (id) ON DELETE CASCADE
 );
 
 CREATE TABLE classrooms
@@ -27,7 +27,7 @@ CREATE TABLE classrooms
     id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     title        VARCHAR(100) NOT NULL,
     description  VARCHAR(1000),
-    teacher_id   INT          NOT NULL REFERENCES users (id),
+    teacher_id   INT          NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     max_students INT          NOT NULL DEFAULT 1
 );
 
@@ -42,7 +42,7 @@ CREATE TABLE lessons
 (
     id           INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     title        VARCHAR(100) NOT NULL,
-    classroom_id INT          NOT NULL REFERENCES classrooms (id),
+    classroom_id INT          NOT NULL REFERENCES classrooms (id) ON DELETE CASCADE,
     content      JSONB,
     active       BOOLEAN DEFAULT FALSE
 );

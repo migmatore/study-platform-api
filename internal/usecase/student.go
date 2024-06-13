@@ -18,15 +18,34 @@ type StudentTeacherService interface {
 type StudentUserService interface {
 	ById(ctx context.Context, id int) (core.User, error)
 	Create(ctx context.Context, user core.User) (core.User, error)
+	IsExist(ctx context.Context, email string) (bool, error)
+}
+
+type StudentClassroomService interface {
+	AddStudent(ctx context.Context, studentId int, classroomsId []int) error
+	ById(ctx context.Context, id int) (core.Classroom, error)
+	Students(ctx context.Context, classroomId int) ([]core.Student, error)
 }
 
 type StudentUseCase struct {
-	studentTeacherService StudentTeacherService
-	studentUserService    StudentUserService
+	transactionService      TransactionService
+	studentTeacherService   StudentTeacherService
+	studentUserService      StudentUserService
+	studentClassroomService StudentClassroomService
 }
 
-func NewStudentsUseCase(studentTeacherService TeacherService, studentUserService StudentUserService) *StudentUseCase {
-	return &StudentUseCase{studentTeacherService: studentTeacherService, studentUserService: studentUserService}
+func NewStudentsUseCase(
+	transactionService TransactionService,
+	studentTeacherService TeacherService,
+	studentUserService StudentUserService,
+	studentClassroomService StudentClassroomService,
+) *StudentUseCase {
+	return &StudentUseCase{
+		transactionService:      transactionService,
+		studentTeacherService:   studentTeacherService,
+		studentUserService:      studentUserService,
+		studentClassroomService: studentClassroomService,
+	}
 }
 
 func (uc StudentUseCase) All(ctx context.Context, metadata core.TokenMetadata) ([]core.StudentResponse, error) {
@@ -63,6 +82,31 @@ func (uc StudentUseCase) Create(ctx context.Context, metadata core.TokenMetadata
 		return core.StudentResponse{}, apperrors.AccessDenied
 	}
 
+	exist, err := uc.studentUserService.IsExist(ctx, req.Email)
+	if err != nil {
+		return core.StudentResponse{}, err
+	}
+
+	if exist {
+		return core.StudentResponse{}, apperrors.EntityAlreadyExist
+	}
+
+	for _, classroomId := range req.ClassroomsId {
+		classroom, err := uc.studentClassroomService.ById(ctx, classroomId)
+		if err != nil {
+			return core.StudentResponse{}, err
+		}
+
+		students, err := uc.studentTeacherService.Students(ctx, metadata.UserId)
+		if err != nil {
+			return core.StudentResponse{}, err
+		}
+
+		if len(students)+1 > classroom.MaxStudents {
+			return core.StudentResponse{}, apperrors.NumberOfStudentsExceeded
+		}
+	}
+
 	user, err := uc.studentUserService.ById(ctx, metadata.UserId)
 	if err != nil {
 		return core.StudentResponse{}, err
@@ -73,15 +117,27 @@ func (uc StudentUseCase) Create(ctx context.Context, metadata core.TokenMetadata
 		return core.StudentResponse{}, err
 	}
 
-	student, err := uc.studentUserService.Create(ctx, core.User{
-		FullName:     req.FullName,
-		Phone:        req.Phone,
-		Email:        req.Email,
-		PasswordHash: string(hash),
-		Role:         core.StudentRole,
-		Institution:  user.Institution,
-	})
-	if err != nil {
+	var student core.User
+
+	if err := uc.transactionService.WithinTransaction(ctx, func(txCtx context.Context) error {
+		student, err = uc.studentUserService.Create(txCtx, core.User{
+			FullName:     req.FullName,
+			Phone:        req.Phone,
+			Email:        req.Email,
+			PasswordHash: string(hash),
+			Role:         core.StudentRole,
+			Institution:  user.Institution,
+		})
+		if err != nil {
+			return err
+		}
+
+		if err := uc.studentClassroomService.AddStudent(txCtx, student.Id, req.ClassroomsId); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return core.StudentResponse{}, err
 	}
 

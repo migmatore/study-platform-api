@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/migmatore/study-platform-api/internal/core"
 	"github.com/migmatore/study-platform-api/internal/repository/psql"
 	"github.com/migmatore/study-platform-api/pkg/logger"
 	"github.com/migmatore/study-platform-api/pkg/utils"
+	"strings"
 )
 
 type ClassroomRepo struct {
@@ -248,4 +250,39 @@ func (r ClassroomRepo) StudentsByClassroomsId(ctx context.Context, ids []int) ([
 	}
 
 	return students, nil
+}
+
+func (r ClassroomRepo) AddStudent(ctx context.Context, studentId int, classroomsId []int) error {
+	var q strings.Builder
+
+	q.WriteString("INSERT INTO classroom_students(classroom_id, student_id) VALUES ")
+
+	data := make([]interface{}, 0, len(classroomsId)*2)
+
+	var argNum int
+
+	for i, id := range classroomsId {
+		q.WriteString(fmt.Sprintf("($%d, $%d)", argNum+1, argNum+2))
+
+		argNum += 2
+
+		if i != len(classroomsId)-1 {
+			q.WriteString(",")
+		}
+
+		data = append(data, id)
+		data = append(data, studentId)
+	}
+
+	if _, err := r.pool.Exec(ctx, q.String(), data...); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			r.logger.Errorf("Error: %v", err)
+			return err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return err
+	}
+
+	return nil
 }

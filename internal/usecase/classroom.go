@@ -13,6 +13,7 @@ type ClassroomService interface {
 	IsBelongs(ctx context.Context, classroomId int, teacherId int) (bool, error)
 	IsIn(ctx context.Context, classroomId, studentId int) (bool, error)
 	Students(ctx context.Context, classroomId int) ([]core.Student, error)
+	AddStudent(ctx context.Context, studentId int, classroomsId []int) error
 }
 
 type AdminService interface {
