@@ -19,6 +19,7 @@ type StudentUserService interface {
 	ById(ctx context.Context, id int) (core.User, error)
 	Create(ctx context.Context, user core.User) (core.User, error)
 	IsExist(ctx context.Context, email string) (bool, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type StudentClassroomService interface {
@@ -148,4 +149,19 @@ func (uc StudentUseCase) Create(ctx context.Context, metadata core.TokenMetadata
 		Email:        student.Email,
 		ClassroomsId: nil,
 	}, nil
+}
+
+func (uc StudentUseCase) Delete(ctx context.Context, metadata core.TokenMetadata, id int) error {
+	switch core.RoleType(metadata.Role) {
+	case core.AdminRole:
+		return apperrors.AccessDenied
+	case core.TeacherRole:
+		if err := uc.studentUserService.Delete(ctx, id); err != nil {
+			return err
+		}
+	case core.StudentRole:
+		return apperrors.AccessDenied
+	}
+
+	return nil
 }

@@ -86,6 +86,7 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	students := v1.Group("/students")
 	students.Get("/", h.student.Students)
 	students.Post("/", h.student.Create)
+	students.Delete("/:id", h.student.Delete)
 
 	return h.app
 }

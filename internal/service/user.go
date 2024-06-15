@@ -12,6 +12,7 @@ type UserRepo interface {
 	ByEmail(ctx context.Context, email string) (core.UserModel, error)
 	ById(ctx context.Context, id int) (core.UserModel, error)
 	UpdateProfile(ctx context.Context, userId int, profile core.UpdateUserProfileModel) (core.UserProfileModel, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type UserRoleRepo interface {
@@ -139,4 +140,8 @@ func (s UserService) UpdateProfile(ctx context.Context, userId int, profile core
 		Phone:    model.Phone,
 		Email:    model.Email,
 	}, nil
+}
+
+func (s UserService) Delete(ctx context.Context, id int) error {
+	return s.userRepo.Delete(ctx, id)
 }

@@ -186,3 +186,19 @@ func (r UserRepo) UpdateProfile(
 
 	return p, nil
 }
+
+func (r UserRepo) Delete(ctx context.Context, id int) error {
+	q := `DELETE FROM users WHERE id = $1`
+
+	if _, err := r.pool.Exec(ctx, q, id); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			r.logger.Errorf("Error: %v", err)
+			return err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return err
+	}
+
+	return nil
+}

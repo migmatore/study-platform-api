@@ -13,6 +13,7 @@ import (
 type StudentUseCase interface {
 	All(ctx context.Context, metadata core.TokenMetadata) ([]core.StudentResponse, error)
 	Create(ctx context.Context, metadata core.TokenMetadata, req core.CreateStudentRequest) (core.StudentResponse, error)
+	Delete(ctx context.Context, metadata core.TokenMetadata, id int) error
 }
 
 type StudentHandler struct {
@@ -65,4 +66,26 @@ func (h StudentHandler) Create(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(student)
+}
+
+func (h StudentHandler) Delete(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	claims := jwt.ExtractTokenMetadata(c)
+
+	studentId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FiberError(c, fiber.StatusBadRequest, errors.New("the id must be int"))
+	}
+
+	if err := h.studentUseCase.Delete(ctx, claims, studentId); err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			return utils.FiberError(c, fiber.StatusForbidden, err)
+		}
+
+		return utils.FiberError(c, fiber.StatusInternalServerError, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "student successfully deleted",
+	})
 }

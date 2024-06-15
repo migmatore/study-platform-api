@@ -14,6 +14,7 @@ type UserService interface {
 	ById(ctx context.Context, id int) (core.User, error)
 	Create(ctx context.Context, user core.User) (core.User, error)
 	UpdateProfile(ctx context.Context, userId int, profile core.UpdateUserProfile) (core.UserProfile, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type UserUseCase struct {
