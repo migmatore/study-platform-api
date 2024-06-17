@@ -49,7 +49,11 @@ func NewHandler(config *config.Config, deps HandlerDeps) *Handler {
 func (h *Handler) Init() *fiber.App {
 	h.app = fiber.New()
 
-	h.app.Use(cors.New())
+	h.app.Use(cors.New(cors.Config{
+		AllowOrigins: "api.learnflow.ru",
+		AllowMethods: "*",
+		AllowHeaders: "*",
+	}))
 	h.app.Use(httpLog.New())
 
 	go h.hub.Run()
