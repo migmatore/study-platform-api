@@ -62,3 +62,21 @@ func (r InstitutionRepo) Create(ctx context.Context, inst core.InstitutionModel)
 
 	return i, nil
 }
+
+func (r InstitutionRepo) ById(ctx context.Context, id int) (core.InstitutionModel, error) {
+	q := `SELECT id, name, description FROM institutions WHERE id = $1`
+
+	var i core.InstitutionModel
+
+	if err := r.pool.QueryRow(ctx, q, id).Scan(&i.Id, &i.Name, &i.Description); err != nil {
+		if err := utils.ParsePgError(err); err != nil {
+			r.logger.Errorf("Error: %v", err)
+			return core.InstitutionModel{}, err
+		}
+
+		r.logger.Errorf("Query error. %v", err)
+		return core.InstitutionModel{}, err
+	}
+
+	return i, nil
+}

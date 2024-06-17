@@ -130,11 +130,11 @@ func (uc AuthUseCase) Signup(ctx context.Context, req core.UserSignupRequest) (c
 			}
 
 			user, err = uc.userService.Create(txCtx, core.User{
-				FullName:     req.FullName,
-				Email:        req.Email,
-				PasswordHash: string(hash),
-				Role:         core.AdminRole,
-				Institution:  &inst,
+				FullName:      req.FullName,
+				Email:         req.Email,
+				PasswordHash:  string(hash),
+				Role:          core.AdminRole,
+				InstitutionId: &inst.Id,
 			})
 			if err != nil {
 				return err

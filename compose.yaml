@@ -12,10 +12,13 @@ volumes:
 
 services:
   server:
+    #image: moz200/study-platform-api-server
     build:
       dockerfile: Dockerfile
       context: .
       target: final
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
     ports:
@@ -25,7 +28,7 @@ services:
       - 8081
       - 8082
     volumes:
-      - ./config/config-local.yml:/config/config-local.yml
+      - ./config/config-prod.yml:/config/config-prod.yml
 
     # The commented out section below is an example of how to define a PostgreSQL
     # database that your application can use. `depends_on` tells Docker Compose to
@@ -46,6 +49,7 @@ services:
       - POSTGRES_DB=study_platform
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=postgres
+      - TARGETARCH=amd64
     ports:
       - 5436:5432
     #    expose:

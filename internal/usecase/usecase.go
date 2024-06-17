@@ -17,6 +17,7 @@ type UseCase struct {
 	Classroom *ClassroomUseCase
 	Lesson    *LessonUseCase
 	Student   *StudentUseCase
+	Teacher   *TeacherUseCase
 }
 
 func New(deps Deps) *UseCase {
@@ -36,5 +37,6 @@ func New(deps Deps) *UseCase {
 			deps.UserService,
 			deps.ClassroomService,
 		),
+		Teacher: NewTeacherUseCase(deps.TeacherService, deps.UserService),
 	}
 }

@@ -187,6 +187,42 @@ func (r UserRepo) UpdateProfile(
 	return p, nil
 }
 
+func (r UserRepo) ByInstitutionId(ctx context.Context, institutionId int) ([]core.UserModel, error) {
+	q := `SELECT id, full_name, phone, email, password_hash, role_id, institution_id  FROM users WHERE institution_id = $1`
+
+	users := make([]core.UserModel, 0)
+
+	rows, err := r.pool.Query(ctx, q, institutionId)
+	if err != nil {
+		r.logger.Errorf("Query error. %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		user := core.UserModel{}
+
+		err := rows.Scan(
+			&user.Id,
+			&user.FullName,
+			&user.Phone,
+			&user.Email,
+			&user.PasswordHash,
+			&user.RoleId,
+			&user.InstitutionId,
+		)
+		if err != nil {
+			r.logger.Errorf("Query error. %v", err)
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (r UserRepo) Delete(ctx context.Context, id int) error {
 	q := `DELETE FROM users WHERE id = $1`
 

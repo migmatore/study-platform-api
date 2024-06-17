@@ -122,12 +122,12 @@ func (uc StudentUseCase) Create(ctx context.Context, metadata core.TokenMetadata
 
 	if err := uc.transactionService.WithinTransaction(ctx, func(txCtx context.Context) error {
 		student, err = uc.studentUserService.Create(txCtx, core.User{
-			FullName:     req.FullName,
-			Phone:        req.Phone,
-			Email:        req.Email,
-			PasswordHash: string(hash),
-			Role:         core.StudentRole,
-			Institution:  user.Institution,
+			FullName:      req.FullName,
+			Phone:         req.Phone,
+			Email:         req.Email,
+			PasswordHash:  string(hash),
+			Role:          core.StudentRole,
+			InstitutionId: user.InstitutionId,
 		})
 		if err != nil {
 			return err

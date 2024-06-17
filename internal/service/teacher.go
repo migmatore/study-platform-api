@@ -7,6 +7,7 @@ import (
 
 type TeacherUserRepo interface {
 	ById(ctx context.Context, id int) (core.UserModel, error)
+	ByInstitutionId(ctx context.Context, institutionId int) ([]core.UserModel, error)
 }
 
 type TeacherClassroomRepo interface {
@@ -16,6 +17,7 @@ type TeacherClassroomRepo interface {
 
 type TeacherRoleRepo interface {
 	ById(ctx context.Context, id int) (core.RoleModel, error)
+	ByName(ctx context.Context, name string) (core.RoleModel, error)
 }
 
 type TeacherService struct {
@@ -32,6 +34,35 @@ func NewTeacherService(
 	return &TeacherService{classroomRepo: classroomRepo, userRepo: userRepo, roleRepo: roleRepo}
 }
 
+func (s TeacherService) All(ctx context.Context, institutionId int) ([]core.Teacher, error) {
+	usersModel, err := s.userRepo.ByInstitutionId(ctx, institutionId)
+	if err != nil {
+		return nil, err
+	}
+
+	teacherRole, err := s.roleRepo.ByName(ctx, string(core.TeacherRole))
+	if err != nil {
+		return nil, err
+	}
+
+	teachers := make([]core.Teacher, 0, len(usersModel))
+
+	for _, user := range usersModel {
+		if user.RoleId != teacherRole.Id {
+			continue
+		}
+
+		teachers = append(teachers, core.Teacher{
+			Id:       user.Id,
+			FullName: user.FullName,
+			Phone:    user.Phone,
+			Email:    user.Email,
+		})
+	}
+
+	return teachers, nil
+}
+
 func (s TeacherService) ById(ctx context.Context, id int) (core.User, error) {
 	userModel, err := s.userRepo.ById(ctx, id)
 	if err != nil {
@@ -44,13 +75,13 @@ func (s TeacherService) ById(ctx context.Context, id int) (core.User, error) {
 	}
 
 	return core.User{
-		Id:           userModel.Id,
-		FullName:     userModel.FullName,
-		Phone:        userModel.Phone,
-		Email:        userModel.Email,
-		PasswordHash: userModel.PasswordHash,
-		Role:         core.RoleType(role.Name),
-		Institution:  nil,
+		Id:            userModel.Id,
+		FullName:      userModel.FullName,
+		Phone:         userModel.Phone,
+		Email:         userModel.Email,
+		PasswordHash:  userModel.PasswordHash,
+		Role:          core.RoleType(role.Name),
+		InstitutionId: nil,
 	}, nil
 }
 

@@ -8,6 +8,7 @@ import (
 type InstitutionRepo interface {
 	IsExist(ctx context.Context, name string) (bool, error)
 	Create(ctx context.Context, inst core.InstitutionModel) (core.InstitutionModel, error)
+	ById(ctx context.Context, id int) (core.InstitutionModel, error)
 }
 
 type InstitutionService struct {

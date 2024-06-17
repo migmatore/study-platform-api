@@ -11,13 +11,13 @@ type UserModel struct {
 }
 
 type User struct {
-	Id           int
-	FullName     string
-	Phone        *string
-	Email        string
-	PasswordHash string
-	Role         RoleType
-	Institution  *Institution
+	Id            int
+	FullName      string
+	Phone         *string
+	Email         string
+	PasswordHash  string
+	Role          RoleType
+	InstitutionId *int
 }
 
 type UserProfile struct {
@@ -90,6 +90,13 @@ type Student struct {
 	ClassroomsId []int
 }
 
+type Teacher struct {
+	Id       int
+	FullName string
+	Phone    *string
+	Email    string
+}
+
 type StudentResponse struct {
 	Id           int     `json:"id"`
 	FullName     string  `json:"full_name"`
@@ -117,4 +124,11 @@ type CreateStudentRequest struct {
 	Email        string  `json:"email"`
 	Password     string  `json:"password"`
 	ClassroomsId []int   `json:"classrooms_id"`
+}
+
+type TeacherResponse struct {
+	Id       int     `json:"id"`
+	FullName string  `json:"full_name"`
+	Phone    *string `json:"phone,omitempty"`
+	Email    string  `json:"email"`
 }

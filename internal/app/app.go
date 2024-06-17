@@ -70,6 +70,7 @@ func (a *App) Run(ctx context.Context) {
 		ClassroomUseCase: useCases.Classroom,
 		LessonUseCase:    useCases.Lesson,
 		StudentUseCase:   useCases.Student,
+		TeacherUseCase:   useCases.Teacher,
 	})
 
 	restApp := restHandlers.Init(ctx)

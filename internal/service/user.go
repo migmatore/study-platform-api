@@ -11,6 +11,7 @@ type UserRepo interface {
 	Create(ctx context.Context, user core.UserModel) (core.UserModel, error)
 	ByEmail(ctx context.Context, email string) (core.UserModel, error)
 	ById(ctx context.Context, id int) (core.UserModel, error)
+	ByInstitutionId(ctx context.Context, institutionId int) ([]core.UserModel, error)
 	UpdateProfile(ctx context.Context, userId int, profile core.UpdateUserProfileModel) (core.UserProfileModel, error)
 	Delete(ctx context.Context, id int) error
 }
@@ -45,38 +46,47 @@ func (s UserService) Create(ctx context.Context, user core.User) (core.User, err
 
 	var userModel core.UserModel
 
-	if user.Institution == nil {
-		userModel, err = s.userRepo.Create(ctx, core.UserModel{
-			FullName:      user.FullName,
-			Phone:         user.Phone,
-			Email:         user.Email,
-			PasswordHash:  user.PasswordHash,
-			RoleId:        role.Id,
-			InstitutionId: nil,
-		})
-	} else {
-		userModel, err = s.userRepo.Create(ctx, core.UserModel{
-			FullName:      user.FullName,
-			Phone:         user.Phone,
-			Email:         user.Email,
-			PasswordHash:  user.PasswordHash,
-			RoleId:        role.Id,
-			InstitutionId: &user.Institution.Id,
-		})
-	}
+	//if user.InstitutionId == nil {
+	//	userModel, err = s.userRepo.Create(ctx, core.UserModel{
+	//		FullName:      user.FullName,
+	//		Phone:         user.Phone,
+	//		Email:         user.Email,
+	//		PasswordHash:  user.PasswordHash,
+	//		RoleId:        role.Id,
+	//		InstitutionId: nil,
+	//	})
+	//} else {
+	//	userModel, err = s.userRepo.Create(ctx, core.UserModel{
+	//		FullName:      user.FullName,
+	//		Phone:         user.Phone,
+	//		Email:         user.Email,
+	//		PasswordHash:  user.PasswordHash,
+	//		RoleId:        role.Id,
+	//		InstitutionId: user.InstitutionId,
+	//	})
+	//}
+
+	userModel, err = s.userRepo.Create(ctx, core.UserModel{
+		FullName:      user.FullName,
+		Phone:         user.Phone,
+		Email:         user.Email,
+		PasswordHash:  user.PasswordHash,
+		RoleId:        role.Id,
+		InstitutionId: user.InstitutionId,
+	})
 
 	if err != nil {
 		return core.User{}, err
 	}
 
 	return core.User{
-		Id:           userModel.Id,
-		FullName:     userModel.FullName,
-		Phone:        userModel.Phone,
-		Email:        userModel.Email,
-		PasswordHash: userModel.PasswordHash,
-		Role:         core.RoleType(role.Name),
-		Institution:  nil,
+		Id:            userModel.Id,
+		FullName:      userModel.FullName,
+		Phone:         userModel.Phone,
+		Email:         userModel.Email,
+		PasswordHash:  userModel.PasswordHash,
+		Role:          core.RoleType(role.Name),
+		InstitutionId: nil,
 	}, nil
 }
 
@@ -92,13 +102,13 @@ func (s UserService) ByEmail(ctx context.Context, email string) (core.User, erro
 	}
 
 	return core.User{
-		Id:           userModel.Id,
-		FullName:     userModel.FullName,
-		Phone:        userModel.Phone,
-		Email:        userModel.Email,
-		PasswordHash: userModel.PasswordHash,
-		Role:         core.RoleType(role.Name),
-		Institution:  nil,
+		Id:            userModel.Id,
+		FullName:      userModel.FullName,
+		Phone:         userModel.Phone,
+		Email:         userModel.Email,
+		PasswordHash:  userModel.PasswordHash,
+		Role:          core.RoleType(role.Name),
+		InstitutionId: nil,
 	}, nil
 }
 
@@ -114,13 +124,13 @@ func (s UserService) ById(ctx context.Context, id int) (core.User, error) {
 	}
 
 	return core.User{
-		Id:           userModel.Id,
-		FullName:     userModel.FullName,
-		Phone:        userModel.Phone,
-		Email:        userModel.Email,
-		PasswordHash: userModel.PasswordHash,
-		Role:         core.RoleType(role.Name),
-		Institution:  nil,
+		Id:            userModel.Id,
+		FullName:      userModel.FullName,
+		Phone:         userModel.Phone,
+		Email:         userModel.Email,
+		PasswordHash:  userModel.PasswordHash,
+		Role:          core.RoleType(role.Name),
+		InstitutionId: userModel.InstitutionId,
 	}, nil
 }
 

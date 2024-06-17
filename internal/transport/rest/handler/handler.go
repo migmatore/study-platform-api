@@ -16,6 +16,7 @@ type Deps struct {
 	ClassroomUseCase ClassroomUseCase
 	LessonUseCase    LessonUseCase
 	StudentUseCase   StudentUseCase
+	TeacherUseCase   TeacherUseCase
 }
 
 type Handler struct {
@@ -27,6 +28,7 @@ type Handler struct {
 	classroom *ClassroomHandler
 	lesson    *LessonHandler
 	student   *StudentHandler
+	teacher   *TeacherHandler
 }
 
 func New(config *config.Config, deps Deps) *Handler {
@@ -37,13 +39,18 @@ func New(config *config.Config, deps Deps) *Handler {
 		classroom: NewClassroomHandler(deps.ClassroomUseCase, deps.LessonUseCase),
 		lesson:    NewLessonHandler(deps.LessonUseCase),
 		student:   NewStudentsHandler(deps.StudentUseCase),
+		teacher:   NewTeacherHandler(deps.TeacherUseCase),
 	}
 }
 
 func (h *Handler) Init(ctx context.Context) *fiber.App {
 	h.app = fiber.New()
 
-	h.app.Use(cors.New())
+	h.app.Use(cors.New(cors.Config{
+		AllowOrigins: "api.learnflow.ru",
+		AllowMethods: "*",
+		AllowHeaders: "*",
+	}))
 	h.app.Use(httpLog.New())
 	h.app.Use(func(c *fiber.Ctx) error {
 		c.SetUserContext(ctx)
@@ -87,6 +94,9 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	students.Get("/", h.student.Students)
 	students.Post("/", h.student.Create)
 	students.Delete("/:id", h.student.Delete)
+
+	teachers := v1.Group("/teachers")
+	teachers.Get("/", h.teacher.All)
 
 	return h.app
 }
