@@ -47,7 +47,7 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 	h.app = fiber.New()
 
 	h.app.Use(cors.New(cors.Config{
-		AllowOrigins: "api.learnflow.ru",
+		AllowOrigins: "learnflow.ru",
 		AllowMethods: "*",
 		AllowHeaders: "*",
 	}))
