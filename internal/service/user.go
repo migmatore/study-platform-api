@@ -46,26 +46,6 @@ func (s UserService) Create(ctx context.Context, user core.User) (core.User, err
 
 	var userModel core.UserModel
 
-	//if user.InstitutionId == nil {
-	//	userModel, err = s.userRepo.Create(ctx, core.UserModel{
-	//		FullName:      user.FullName,
-	//		Phone:         user.Phone,
-	//		Email:         user.Email,
-	//		PasswordHash:  user.PasswordHash,
-	//		RoleId:        role.Id,
-	//		InstitutionId: nil,
-	//	})
-	//} else {
-	//	userModel, err = s.userRepo.Create(ctx, core.UserModel{
-	//		FullName:      user.FullName,
-	//		Phone:         user.Phone,
-	//		Email:         user.Email,
-	//		PasswordHash:  user.PasswordHash,
-	//		RoleId:        role.Id,
-	//		InstitutionId: user.InstitutionId,
-	//	})
-	//}
-
 	userModel, err = s.userRepo.Create(ctx, core.UserModel{
 		FullName:      user.FullName,
 		Phone:         user.Phone,

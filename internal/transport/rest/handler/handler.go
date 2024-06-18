@@ -51,6 +51,7 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 		AllowMethods: "*",
 		AllowHeaders: "*",
 	}))
+	//h.app.Use(cors.New())
 	h.app.Use(httpLog.New())
 	h.app.Use(func(c *fiber.Ctx) error {
 		c.SetUserContext(ctx)
@@ -97,6 +98,8 @@ func (h *Handler) Init(ctx context.Context) *fiber.App {
 
 	teachers := v1.Group("/teachers")
 	teachers.Get("/", h.teacher.All)
+	teachers.Post("/", h.teacher.Create)
+	teachers.Delete("/:id", h.teacher.Delete)
 
 	return h.app
 }

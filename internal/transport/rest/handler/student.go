@@ -39,6 +39,7 @@ func (h StudentHandler) Students(c *fiber.Ctx) error {
 
 	return c.JSON(students)
 }
+
 func (h StudentHandler) Create(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	claims := jwt.ExtractTokenMetadata(c)

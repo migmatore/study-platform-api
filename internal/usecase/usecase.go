@@ -33,6 +33,7 @@ func New(deps Deps) *UseCase {
 		Lesson:    NewLessonUseCase(deps.LessonService, deps.ClassroomService, deps.TeacherService),
 		Student: NewStudentsUseCase(
 			deps.TransactionService,
+			deps.StudentService,
 			deps.TeacherService,
 			deps.UserService,
 			deps.ClassroomService,

@@ -9,6 +9,7 @@ import (
 
 type StudentService interface {
 	AllClassrooms(ctx context.Context, studentId int) ([]core.Classroom, error)
+	ByInstitutionId(ctx context.Context, institutionId int) ([]core.Student, error)
 }
 
 type StudentTeacherService interface {
@@ -30,6 +31,7 @@ type StudentClassroomService interface {
 
 type StudentUseCase struct {
 	transactionService      TransactionService
+	studentService          StudentService
 	studentTeacherService   StudentTeacherService
 	studentUserService      StudentUserService
 	studentClassroomService StudentClassroomService
@@ -37,12 +39,14 @@ type StudentUseCase struct {
 
 func NewStudentsUseCase(
 	transactionService TransactionService,
+	studentService StudentService,
 	studentTeacherService TeacherService,
 	studentUserService StudentUserService,
 	studentClassroomService StudentClassroomService,
 ) *StudentUseCase {
 	return &StudentUseCase{
 		transactionService:      transactionService,
+		studentService:          studentService,
 		studentTeacherService:   studentTeacherService,
 		studentUserService:      studentUserService,
 		studentClassroomService: studentClassroomService,
@@ -52,6 +56,29 @@ func NewStudentsUseCase(
 func (uc StudentUseCase) All(ctx context.Context, metadata core.TokenMetadata) ([]core.StudentResponse, error) {
 	switch core.RoleType(metadata.Role) {
 	case core.AdminRole:
+		admin, err := uc.studentUserService.ById(ctx, metadata.UserId)
+		if err != nil {
+			return nil, err
+		}
+
+		students, err := uc.studentService.ByInstitutionId(ctx, *admin.InstitutionId)
+		if err != nil {
+			return nil, err
+		}
+
+		studentsResponse := make([]core.StudentResponse, 0, len(students))
+
+		for _, student := range students {
+			studentsResponse = append(studentsResponse, core.StudentResponse{
+				Id:           student.Id,
+				FullName:     student.FullName,
+				Phone:        student.Phone,
+				Email:        student.Email,
+				ClassroomsId: nil,
+			})
+		}
+
+		return studentsResponse, nil
 	case core.TeacherRole:
 		students, err := uc.studentTeacherService.Students(ctx, metadata.UserId)
 		if err != nil {
@@ -78,7 +105,11 @@ func (uc StudentUseCase) All(ctx context.Context, metadata core.TokenMetadata) (
 	return nil, apperrors.AccessDenied
 }
 
-func (uc StudentUseCase) Create(ctx context.Context, metadata core.TokenMetadata, req core.CreateStudentRequest) (core.StudentResponse, error) {
+func (uc StudentUseCase) Create(
+	ctx context.Context,
+	metadata core.TokenMetadata,
+	req core.CreateStudentRequest,
+) (core.StudentResponse, error) {
 	if core.RoleType(metadata.Role) == core.StudentRole {
 		return core.StudentResponse{}, apperrors.AccessDenied
 	}

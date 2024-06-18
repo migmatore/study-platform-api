@@ -44,7 +44,7 @@ func (h AuthHandler) Signin(c *fiber.Ctx) error {
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(resp)
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
 
 func (h AuthHandler) Signup(c *fiber.Ctx) error {
@@ -68,7 +68,7 @@ func (h AuthHandler) Signup(c *fiber.Ctx) error {
 		return utils.FiberError(c, fiber.StatusInternalServerError, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(resp)
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 func (h AuthHandler) Refresh(c *fiber.Ctx) error {

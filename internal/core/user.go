@@ -132,3 +132,10 @@ type TeacherResponse struct {
 	Phone    *string `json:"phone,omitempty"`
 	Email    string  `json:"email"`
 }
+
+type CreateTeacherRequest struct {
+	FullName string  `json:"full_name"`
+	Phone    *string `json:"phone,omitempty"`
+	Email    string  `json:"email"`
+	Password string  `json:"password"`
+}
