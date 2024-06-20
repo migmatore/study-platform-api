@@ -31,7 +31,7 @@ func NewPostgres(ctx context.Context, maxAttempts int, cfg *config.Config, logge
 	var pool *pgxpool.Pool
 
 	dsn := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s?",
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.Postgres.Username,
 		cfg.Postgres.Password,
 		cfg.Postgres.Host,
